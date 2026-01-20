@@ -58,6 +58,12 @@ const GameIcons = {
             hand: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 11V6a2 2 0 0 0-4 0v1"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/>
                 <path d="M10 10.5V2a2 2 0 0 0-4 0v9"/><path d="M6 13V9a2 2 0 0 0-4 0v5a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"/>
+            </svg>`,
+            trophy: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/>
+                <path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
+                <path d="M4 22h16"/><path d="M10 22V12a2 2 0 0 1 4 0v10"/>
+                <rect x="6" y="3" width="12" height="9" rx="2"/>
             </svg>`
         };
         return icons[name] || '';
@@ -2103,7 +2109,7 @@ class VirtuosoTheory {
             const card = document.createElement('div');
             card.className = 'category-card';
             // Get icon - support both icon names and legacy emojis
-            const iconMap = { 'note': 'note', 'piano': 'piano', 'score': 'score', 'hand': 'hand', '🎵': 'note', '🎹': 'piano', '🎼': 'score', '✋': 'hand' };
+            const iconMap = { 'note': 'note', 'piano': 'piano', 'score': 'score', 'hand': 'hand', 'trophy': 'trophy', '🎵': 'note', '🎹': 'piano', '🎼': 'score', '✋': 'hand', '🏆': 'trophy' };
             const iconName = iconMap[category.icon] || 'note';
             const iconSvg = GameIcons.get(iconName, 32, '#00ffff');
             card.innerHTML = `
