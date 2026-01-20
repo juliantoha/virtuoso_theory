@@ -685,65 +685,58 @@ class InputManager {
         const signalThreshold = Math.max(noiseFloor * 2, 0.005);
         if (rms > signalThreshold) {
             this.silenceCounter = 0;
-            
-            // Get pitch using autocorrelation
+
+            // Get pitch using YIN algorithm
             const result = this.autocorrelate(buffer, this.audioContext.sampleRate);
-            
-            if (result && result.frequency > 0 && result.confidence > 0.35) { // Lowered from 0.4
+
+            if (result && result.frequency > 0 && result.confidence > 0.80) { // High confidence required
                 // Check if frequency is in piano range
-                if (result.frequency >= this.pianoDetection.minFreq && 
+                if (result.frequency >= this.pianoDetection.minFreq &&
                     result.frequency <= this.pianoDetection.maxFreq) {
-                    
-                    // Try harmonic verification but don't require it
-                    const isPiano = this.verifyPianoTimbre(result.frequency);
-                    
-                    // Accept if either piano verified OR high confidence
-                    if (isPiano || result.confidence > 0.5) {
-                        detectedPitch = result.frequency;
-                        confidence = result.confidence;
-                        
-                        // Add to pitch buffer for smoothing
-                        this.pitchBuffer.push(detectedPitch);
-                        if (this.pitchBuffer.length > this.pitchBufferSize) {
-                            this.pitchBuffer.shift();
-                        }
-                        
-                        // Calculate median pitch for stability
-                        const medianPitch = this.getMedian([...this.pitchBuffer]);
-                        const midiNote = this.frequencyToMidi(medianPitch);
-                        
-                        // Check if note is stable
-                        if (this.lastDetectedNote === null || Math.abs(this.lastDetectedNote - midiNote) < 0.5) {
-                            this.noteStabilityCounter++;
-                        } else {
-                            this.noteStabilityCounter = 0;
-                        }
 
-                        const roundedMidiNote = Math.round(midiNote);
+                    detectedPitch = result.frequency;
+                    confidence = result.confidence;
 
-                        // FAST TRIGGER: On attack detection with good confidence, trigger immediately
-                        const shouldTriggerFast = this.attackDetected && confidence > 0.5;
-                        const shouldTriggerStable = this.noteStabilityCounter >= this.noteStabilityThreshold;
-
-                        if ((shouldTriggerFast || shouldTriggerStable) && this.lastStableNote !== roundedMidiNote) {
-                            // Release previous note
-                            if (this.lastStableNote !== null) {
-                                this.game.handleNoteRelease(this.lastStableNote);
-                            }
-
-                            // Calculate velocity from attack strength (piano dynamics)
-                            // Map RMS 0.01-0.15 to velocity 40-120
-                            const velocity = Math.min(120, Math.max(40, Math.floor(40 + (rms * 600))));
-                            this.game.handleNotePress(roundedMidiNote, velocity);
-                            this.lastStableNote = roundedMidiNote;
-                            this.attackDetected = false; // Reset attack flag
-
-                            const noteName = this.game.midiToNote(roundedMidiNote);
-                            this.updateStatus(`Note: ${noteName}`);
-                        }
-
-                        this.lastDetectedNote = midiNote;
+                    // Add to pitch buffer for smoothing
+                    this.pitchBuffer.push(detectedPitch);
+                    if (this.pitchBuffer.length > this.pitchBufferSize) {
+                        this.pitchBuffer.shift();
                     }
+
+                    // Calculate median pitch for stability
+                    const medianPitch = this.getMedian([...this.pitchBuffer]);
+                    const midiNote = this.frequencyToMidi(medianPitch);
+
+                    // Check if note is stable
+                    if (this.lastDetectedNote === null || Math.abs(this.lastDetectedNote - midiNote) < 0.5) {
+                        this.noteStabilityCounter++;
+                    } else {
+                        this.noteStabilityCounter = 0;
+                    }
+
+                    const roundedMidiNote = Math.round(midiNote);
+
+                    // FAST TRIGGER: On attack detection with high confidence
+                    const shouldTriggerFast = this.attackDetected && confidence > 0.80;
+                    const shouldTriggerStable = this.noteStabilityCounter >= this.noteStabilityThreshold;
+
+                    if ((shouldTriggerFast || shouldTriggerStable) && this.lastStableNote !== roundedMidiNote) {
+                        // Release previous note
+                        if (this.lastStableNote !== null) {
+                            this.game.handleNoteRelease(this.lastStableNote);
+                        }
+
+                        // Calculate velocity from attack strength (piano dynamics)
+                        const velocity = Math.min(120, Math.max(40, Math.floor(40 + (rms * 600))));
+                        this.game.handleNotePress(roundedMidiNote, velocity);
+                        this.lastStableNote = roundedMidiNote;
+                        this.attackDetected = false; // Reset attack flag
+
+                        const noteName = this.game.midiToNote(roundedMidiNote);
+                        this.updateStatus(`Note: ${noteName}`);
+                    }
+
+                    this.lastDetectedNote = midiNote;
                 }
             }
 
@@ -835,9 +828,9 @@ class InputManager {
      * Much more accurate than basic autocorrelation for musical instruments
      */
     autocorrelate(buffer, sampleRate) {
-        // YIN parameters optimized for piano
-        const threshold = 0.15;  // Lower = stricter, 0.1-0.2 typical for music
-        const probabilityThreshold = 0.1;
+        // YIN parameters optimized for piano - strict to filter ambient noise
+        const threshold = 0.10;  // Lower = stricter detection (was 0.15)
+        const probabilityThreshold = 0.70; // Require 70%+ confidence internally
 
         // Piano frequency range (A0=27.5Hz to C8=4186Hz)
         const minFreq = 27.5;
