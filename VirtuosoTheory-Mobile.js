@@ -1107,10 +1107,8 @@ class VirtuosoTheory {
         try {
             console.log('Starting game initialization...');
             
-            // For mobile, show tap to start screen
-            if (this.isMobile || this.isIPad) {
-                await this.showTapToStart();
-            }
+            // Show click/tap to start screen - required for AudioContext on all modern browsers
+            await this.showTapToStart();
             
             // Request wake lock on mobile to prevent screen sleep
             if ('wakeLock' in navigator && this.isMobile) {
@@ -1196,13 +1194,14 @@ class VirtuosoTheory {
         return new Promise((resolve) => {
             const loadingScreen = document.getElementById('loadingScreen');
             if (loadingScreen) {
+                const startText = this.isMobile || this.isIPad ? 'TAP TO START' : 'CLICK TO START';
                 loadingScreen.innerHTML = `
                     <div class="loading-title">VIRTUOSO THEORY</div>
                     <div style="color: #00ffff; font-size: 18px; margin-top: 30px; animation: pulse 1.5s ease-in-out infinite;">
-                        TAP TO START
+                        ${startText}
                     </div>
                     <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 10px;">
-                        Audio requires user interaction on mobile
+                        Audio requires user interaction to start
                     </div>
                 `;
                 
