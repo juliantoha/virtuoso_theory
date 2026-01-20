@@ -1,5 +1,69 @@
 // VirtuosoTheory-Mobile.js - Complete Rewrite with JSON-based Levels
 
+// SVG Icon helper - simple, clean icons matching the cyberpunk aesthetic
+const GameIcons = {
+    // Returns inline SVG markup for icons
+    get(name, size = 16, color = 'currentColor') {
+        const icons = {
+            piano: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <line x1="6" y1="4" x2="6" y2="14"/><line x1="10" y1="4" x2="10" y2="14"/>
+                <line x1="14" y1="4" x2="14" y2="14"/><line x1="18" y1="4" x2="18" y2="14"/>
+                <rect x="5" y="4" width="2" height="8" fill="${color}"/><rect x="9" y="4" width="2" height="8" fill="${color}"/>
+                <rect x="13" y="4" width="2" height="8" fill="${color}"/><rect x="17" y="4" width="2" height="8" fill="${color}"/>
+            </svg>`,
+            microphone: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <rect x="9" y="2" width="6" height="11" rx="3"/>
+                <path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/>
+                <line x1="8" y1="22" x2="16" y2="22"/>
+            </svg>`,
+            midi: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
+                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                <circle cx="12" cy="9" r="1" fill="${color}"/><circle cx="12" cy="15" r="1" fill="${color}"/>
+            </svg>`,
+            touch: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <rect x="5" y="2" width="14" height="20" rx="2"/>
+                <circle cx="12" cy="18" r="1" fill="${color}"/>
+                <line x1="9" y1="5" x2="15" y2="5"/>
+            </svg>`,
+            note: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <circle cx="8" cy="18" r="4" fill="${color}"/>
+                <path d="M12 18V4l8-2v14"/>
+                <circle cx="20" cy="16" r="4" fill="${color}"/>
+            </svg>`,
+            score: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <path d="M9 18V5l12-2v13"/>
+                <circle cx="6" cy="18" r="3" fill="${color}"/>
+                <circle cx="18" cy="16" r="3" fill="${color}"/>
+                <line x1="2" y1="8" x2="7" y2="8" opacity="0.5"/><line x1="2" y1="11" x2="7" y2="11" opacity="0.5"/>
+                <line x1="2" y1="14" x2="7" y2="14" opacity="0.5"/>
+            </svg>`,
+            check: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>`,
+            warning: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <path d="M12 2L2 22h20L12 2z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="${color}"/>
+            </svg>`,
+            star: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="none">
+                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+            </svg>`,
+            starEmpty: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2">
+                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+            </svg>`,
+            back: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>`,
+            hand: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 11V6a2 2 0 0 0-4 0v1"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/>
+                <path d="M10 10.5V2a2 2 0 0 0-4 0v9"/><path d="M6 13V9a2 2 0 0 0-4 0v5a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"/>
+            </svg>`
+        };
+        return icons[name] || '';
+    }
+};
+
 // Mobile-optimized InputManager class
 class InputManager {
     constructor(game) {
@@ -55,15 +119,15 @@ class InputManager {
         `;
         
         // Only show available methods on mobile
-        const methods = this.isMobile ? 
+        const methods = this.isMobile ?
             [
-                { id: 'virtual', name: 'Touch', icon: '📱', description: 'Touch Piano' },
-                { id: 'microphone', name: 'Acoustic', icon: '🎤', description: 'Microphone' }
-            ] : 
+                { id: 'virtual', name: 'Touch', icon: GameIcons.get('touch', 14), description: 'Touch Piano' },
+                { id: 'microphone', name: 'Acoustic', icon: GameIcons.get('microphone', 14), description: 'Microphone' }
+            ] :
             [
-                { id: 'virtual', name: 'Virtual', icon: '🎹', description: 'Keyboard/Click' },
-                { id: 'midi', name: 'MIDI', icon: '🎛️', description: 'USB/MIDI' },
-                { id: 'microphone', name: 'Acoustic', icon: '🎤', description: 'Microphone' }
+                { id: 'virtual', name: 'Virtual', icon: GameIcons.get('piano', 14), description: 'Keyboard/Click' },
+                { id: 'midi', name: 'MIDI', icon: GameIcons.get('midi', 14), description: 'USB/MIDI' },
+                { id: 'microphone', name: 'Acoustic', icon: GameIcons.get('microphone', 14), description: 'Microphone' }
             ];
         
         // Add CSS for disabled state
@@ -89,15 +153,15 @@ class InputManager {
             button.className = 'input-method-btn';
             
             const leftContent = document.createElement('div');
-            leftContent.style.cssText = 'display: flex; align-items: center; gap: 4px;';
+            leftContent.style.cssText = 'display: flex; align-items: center; gap: 6px;';
             leftContent.innerHTML = `
-                <span style="font-size: 14px; opacity: 0.9;">${method.icon}</span>
+                <span style="display: flex; align-items: center; opacity: 0.9;">${method.icon}</span>
                 <span style="font-weight: 600;">${method.name}</span>
             `;
-            
+
             const rightContent = document.createElement('div');
-            rightContent.innerHTML = this.currentInputMethod === method.id ? 
-                '<span style="color: #00ff88; font-size: 12px;">✔</span>' : '';
+            rightContent.innerHTML = this.currentInputMethod === method.id ?
+                `<span style="color: #00ff88; display: flex; align-items: center;">${GameIcons.get('check', 12, '#00ff88')}</span>` : '';
             
             button.appendChild(leftContent);
             button.appendChild(rightContent);
@@ -151,7 +215,7 @@ class InputManager {
             if (message.includes('MIDI:')) {
                 shortMessage = 'MIDI Connected';
             } else if (message.includes('Listening')) {
-                shortMessage = '🎤 Listening';
+                shortMessage = 'Mic Active';
             } else if (message.includes('Virtual')) {
                 shortMessage = 'Virtual Active';
             } else if (message.includes('Touch')) {
@@ -303,8 +367,8 @@ class InputManager {
                     box-shadow: 0 0 30px rgba(255, 102, 102, 0.5);
                 `;
                 notification.innerHTML = `
-                    <div style="color: #ff6666; font-weight: bold; margin-bottom: 10px;">
-                        ⚠️ INPUT CHANGED
+                    <div style="color: #ff6666; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        ${GameIcons.get('warning', 18, '#ff6666')} INPUT CHANGED
                     </div>
                     <div style="font-size: 12px;">
                         Switched to Virtual Piano<br>
@@ -491,7 +555,7 @@ class InputManager {
             this.detectPitch();
             
             // Update status
-            this.updateStatus('🎤 Listening for piano...');
+            this.updateStatus('Listening for piano...');
             
             // Show calibration helper
             this.showCalibrationHelper();
@@ -615,7 +679,7 @@ class InputManager {
                                 this.lastStableNote = roundedMidiNote;
                                 
                                 const noteName = this.game.midiToNote(roundedMidiNote);
-                                this.updateStatus(`🎵 ${noteName}`);
+                                this.updateStatus(`Note: ${noteName}`);
                             }
                         }
                         
@@ -633,7 +697,7 @@ class InputManager {
                 this.lastDetectedNote = null;
                 this.noteStabilityCounter = 0;
                 this.pitchBuffer = [];
-                this.updateStatus('🎤 Listening...');
+                this.updateStatus('Listening...');
             }
         }
         
@@ -887,8 +951,8 @@ class InputManager {
         `;
         
         helper.innerHTML = `
-            <div style="color: #00ffff; font-weight: bold; margin-bottom: 8px;">
-                🎤 MICROPHONE MODE
+            <div style="color: #00ffff; font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                ${GameIcons.get('microphone', 16, '#00ffff')} MICROPHONE MODE
             </div>
             <div style="font-size: 11px; opacity: 0.8;">
                 Play notes clearly on your piano<br>
@@ -1261,7 +1325,7 @@ class VirtuosoTheory {
                 id: 'note-identification',
                 name: 'Note Identification',
                 description: 'Master reading notes',
-                icon: '🎵',
+                icon: 'note',
                 levels: [
                     {
                         id: 'basic',
@@ -2037,8 +2101,12 @@ class VirtuosoTheory {
         this.categories.forEach(category => {
             const card = document.createElement('div');
             card.className = 'category-card';
+            // Get icon - support both icon names and legacy emojis
+            const iconMap = { 'note': 'note', 'piano': 'piano', 'score': 'score', 'hand': 'hand', '🎵': 'note', '🎹': 'piano', '🎼': 'score', '✋': 'hand' };
+            const iconName = iconMap[category.icon] || 'note';
+            const iconSvg = GameIcons.get(iconName, 32, '#00ffff');
             card.innerHTML = `
-                <div class="category-icon">${category.icon}</div>
+                <div class="category-icon" style="display: flex; justify-content: center; align-items: center;">${iconSvg}</div>
                 <div class="category-name">${category.name}</div>
                 <div class="category-desc">${category.description}</div>
                 <div class="category-desc" style="margin-top: 5px; color: #00ff88;">
@@ -2072,9 +2140,9 @@ class VirtuosoTheory {
                 let stars = '';
                 for (let i = 0; i < 5; i++) {
                     if (i < (level.difficulty || 1)) {
-                        stars += '<span class="difficulty-star">★</span>';
+                        stars += `<span class="difficulty-star">${GameIcons.get('star', 14, '#ffcc00')}</span>`;
                     } else {
-                        stars += '<span class="difficulty-star" style="opacity: 0.3;">★</span>';
+                        stars += `<span class="difficulty-star" style="opacity: 0.3;">${GameIcons.get('starEmpty', 14, '#ffcc00')}</span>`;
                     }
                 }
                 
