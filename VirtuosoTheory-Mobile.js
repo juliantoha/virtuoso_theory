@@ -2540,11 +2540,10 @@ class VirtuosoTheory {
         
         const existingNotes = this.staff.svg.querySelectorAll('.staff-note, .staff-note-glow, .ledger-line');
         existingNotes.forEach(el => el.remove());
-        
-        const targetScore = this.currentLevel?.targetScore || 100;
-        const percentage = Math.round((this.score / targetScore) * 100);
-        
-        this.showFeedback(`Score: ${this.score} (${percentage}%)`, percentage >= 80);
+
+        // Show final score with max streak info
+        const streakText = this.maxStreak >= 5 ? ` | Best: ${this.maxStreak}x` : '';
+        this.showFeedback(`Final Score: ${this.score}${streakText}`, true);
     }
 
     drawGrid() {
