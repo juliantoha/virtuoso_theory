@@ -107,7 +107,12 @@ class InputManager {
         this.noteOnThreshold = 0.008;  // Slightly higher to reduce false triggers
         this.noteOffThreshold = 0.004;
         this.pitchConfidenceThreshold = 0.4;
-        
+
+        // Expected note range filtering (1 octave above and below expected notes)
+        this.expectedMidiMin = 0;   // Minimum MIDI note to accept
+        this.expectedMidiMax = 127; // Maximum MIDI note to accept
+        this.rangeFilterEnabled = true; // Enable range filtering
+
         this.init();
     }
     
@@ -303,6 +308,30 @@ class InputManager {
         }
     }
     
+    /**
+     * Set the acceptable MIDI note range based on expected notes
+     * Filters out notes more than 1 octave away from expected answer
+     */
+    setExpectedNoteRange(expectedNotes) {
+        if (!expectedNotes || expectedNotes.size === 0) {
+            // No expected notes - accept full range
+            this.expectedMidiMin = 0;
+            this.expectedMidiMax = 127;
+            return;
+        }
+
+        // Find min and max of expected notes
+        const notes = Array.from(expectedNotes);
+        const minNote = Math.min(...notes);
+        const maxNote = Math.max(...notes);
+
+        // Allow 1 octave (12 semitones) above and below
+        this.expectedMidiMin = Math.max(0, minNote - 12);
+        this.expectedMidiMax = Math.min(127, maxNote + 12);
+
+        console.log(`Note range filter: MIDI ${this.expectedMidiMin}-${this.expectedMidiMax}`);
+    }
+
     updateButtonStates() {
         const methods = this.isMobile ? ['virtual', 'microphone'] : ['virtual', 'midi', 'microphone'];
         
@@ -685,44 +714,44 @@ class InputManager {
         const signalThreshold = Math.max(noiseFloor * 2, 0.005);
         if (rms > signalThreshold) {
             this.silenceCounter = 0;
-            
-            // Get pitch using autocorrelation
+
+            // Get pitch using YIN algorithm
             const result = this.autocorrelate(buffer, this.audioContext.sampleRate);
-            
-            if (result && result.frequency > 0 && result.confidence > 0.35) { // Lowered from 0.4
+
+            if (result && result.frequency > 0 && result.confidence > 0.80) { // High confidence required
                 // Check if frequency is in piano range
-                if (result.frequency >= this.pianoDetection.minFreq && 
+                if (result.frequency >= this.pianoDetection.minFreq &&
                     result.frequency <= this.pianoDetection.maxFreq) {
-                    
-                    // Try harmonic verification but don't require it
-                    const isPiano = this.verifyPianoTimbre(result.frequency);
-                    
-                    // Accept if either piano verified OR high confidence
-                    if (isPiano || result.confidence > 0.5) {
-                        detectedPitch = result.frequency;
-                        confidence = result.confidence;
-                        
-                        // Add to pitch buffer for smoothing
-                        this.pitchBuffer.push(detectedPitch);
-                        if (this.pitchBuffer.length > this.pitchBufferSize) {
-                            this.pitchBuffer.shift();
-                        }
-                        
-                        // Calculate median pitch for stability
-                        const medianPitch = this.getMedian([...this.pitchBuffer]);
-                        const midiNote = this.frequencyToMidi(medianPitch);
-                        
-                        // Check if note is stable
-                        if (this.lastDetectedNote === null || Math.abs(this.lastDetectedNote - midiNote) < 0.5) {
-                            this.noteStabilityCounter++;
-                        } else {
-                            this.noteStabilityCounter = 0;
-                        }
 
-                        const roundedMidiNote = Math.round(midiNote);
+                    detectedPitch = result.frequency;
+                    confidence = result.confidence;
 
-                        // FAST TRIGGER: On attack detection with good confidence, trigger immediately
-                        const shouldTriggerFast = this.attackDetected && confidence > 0.5;
+                    // Add to pitch buffer for smoothing
+                    this.pitchBuffer.push(detectedPitch);
+                    if (this.pitchBuffer.length > this.pitchBufferSize) {
+                        this.pitchBuffer.shift();
+                    }
+
+                    // Calculate median pitch for stability
+                    const medianPitch = this.getMedian([...this.pitchBuffer]);
+                    const midiNote = this.frequencyToMidi(medianPitch);
+
+                    // Check if note is stable
+                    if (this.lastDetectedNote === null || Math.abs(this.lastDetectedNote - midiNote) < 0.5) {
+                        this.noteStabilityCounter++;
+                    } else {
+                        this.noteStabilityCounter = 0;
+                    }
+
+                    const roundedMidiNote = Math.round(midiNote);
+
+                    // Range filter: only accept notes within expected range (±1 octave)
+                    const inRange = !this.rangeFilterEnabled ||
+                        (roundedMidiNote >= this.expectedMidiMin && roundedMidiNote <= this.expectedMidiMax);
+
+                    if (inRange) {
+                        // FAST TRIGGER: On attack detection with high confidence
+                        const shouldTriggerFast = this.attackDetected && confidence > 0.80;
                         const shouldTriggerStable = this.noteStabilityCounter >= this.noteStabilityThreshold;
 
                         if ((shouldTriggerFast || shouldTriggerStable) && this.lastStableNote !== roundedMidiNote) {
@@ -732,7 +761,6 @@ class InputManager {
                             }
 
                             // Calculate velocity from attack strength (piano dynamics)
-                            // Map RMS 0.01-0.15 to velocity 40-120
                             const velocity = Math.min(120, Math.max(40, Math.floor(40 + (rms * 600))));
                             this.game.handleNotePress(roundedMidiNote, velocity);
                             this.lastStableNote = roundedMidiNote;
@@ -741,9 +769,9 @@ class InputManager {
                             const noteName = this.game.midiToNote(roundedMidiNote);
                             this.updateStatus(`Note: ${noteName}`);
                         }
-
-                        this.lastDetectedNote = midiNote;
                     }
+
+                    this.lastDetectedNote = midiNote;
                 }
             }
 
@@ -835,9 +863,9 @@ class InputManager {
      * Much more accurate than basic autocorrelation for musical instruments
      */
     autocorrelate(buffer, sampleRate) {
-        // YIN parameters optimized for piano
-        const threshold = 0.15;  // Lower = stricter, 0.1-0.2 typical for music
-        const probabilityThreshold = 0.1;
+        // YIN parameters optimized for piano - strict to filter ambient noise
+        const threshold = 0.10;  // Lower = stricter detection (was 0.15)
+        const probabilityThreshold = 0.70; // Require 70%+ confidence internally
 
         // Piano frequency range (A0=27.5Hz to C8=4186Hz)
         const minFreq = 27.5;
@@ -2516,40 +2544,164 @@ class VirtuosoTheory {
         }, { passive: false });
     }
 
-    startGame() {
+    async startGame() {
         if (!this.currentLevel) {
             this.openCategoryModal();
             return;
         }
-        
+
+        // Show exciting countdown first
+        await this.showCountdown();
+
         this.score = 0;
         this.streak = 0;
         this.questionIndex = 0;
         this.timeRemaining = this.currentLevel.timeLimit;
         this.gameActive = true;
         this.isPaused = false;
-        
+
         document.getElementById('score').textContent = this.score;
         document.getElementById('streak').textContent = this.streak;
         document.getElementById('timer').textContent = this.timeRemaining;
-        
+
         const startBtn = document.getElementById('startBtn');
         const pauseBtn = document.getElementById('pauseBtn');
-        
+
         // Remove the pulsing animation and reset button styles
         startBtn.classList.remove('ready-to-start');
         startBtn.style.animation = '';
         startBtn.style.transform = '';
         startBtn.style.boxShadow = '';
         startBtn.style.background = '';
-        
+
         startBtn.style.display = 'none';
         pauseBtn.style.display = 'block';
         pauseBtn.disabled = false;
-        
+
         this.shuffleQuestions();
         this.startTimer();
         this.nextQuestion();
+    }
+
+    showCountdown() {
+        return new Promise((resolve) => {
+            // Create countdown overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'countdownOverlay';
+            overlay.innerHTML = `
+                <style>
+                    #countdownOverlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.85);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 10000;
+                        font-family: 'Orbitron', Arial, sans-serif;
+                    }
+                    .countdown-number {
+                        font-size: clamp(120px, 25vw, 200px);
+                        font-weight: bold;
+                        color: #00ffff;
+                        text-shadow:
+                            0 0 20px rgba(0, 255, 255, 0.8),
+                            0 0 40px rgba(0, 255, 255, 0.6),
+                            0 0 60px rgba(0, 255, 255, 0.4),
+                            0 0 80px rgba(0, 255, 255, 0.2);
+                        animation: countdownPulse 0.5s ease-out;
+                        user-select: none;
+                    }
+                    .countdown-go {
+                        font-size: clamp(100px, 20vw, 160px);
+                        font-weight: bold;
+                        background: linear-gradient(135deg, #00ff88 0%, #00ffff 50%, #ff00ff 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        animation: countdownGo 0.6s ease-out;
+                        text-shadow: none;
+                        filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.8));
+                    }
+                    @keyframes countdownPulse {
+                        0% {
+                            transform: scale(2);
+                            opacity: 0;
+                        }
+                        50% {
+                            transform: scale(0.9);
+                            opacity: 1;
+                        }
+                        100% {
+                            transform: scale(1);
+                            opacity: 1;
+                        }
+                    }
+                    @keyframes countdownGo {
+                        0% {
+                            transform: scale(3) rotate(-10deg);
+                            opacity: 0;
+                        }
+                        50% {
+                            transform: scale(0.8) rotate(5deg);
+                            opacity: 1;
+                        }
+                        75% {
+                            transform: scale(1.1) rotate(-2deg);
+                        }
+                        100% {
+                            transform: scale(1) rotate(0deg);
+                            opacity: 1;
+                        }
+                    }
+                </style>
+                <div class="countdown-number">3</div>
+            `;
+            document.body.appendChild(overlay);
+
+            const countdownEl = overlay.querySelector('.countdown-number');
+            const steps = ['3', '2', '1', 'GO!'];
+            let currentStep = 0;
+
+            const nextStep = () => {
+                currentStep++;
+                if (currentStep < steps.length) {
+                    const text = steps[currentStep];
+                    countdownEl.textContent = text;
+
+                    // Reset animation
+                    countdownEl.style.animation = 'none';
+                    countdownEl.offsetHeight; // Trigger reflow
+
+                    if (text === 'GO!') {
+                        countdownEl.className = 'countdown-go';
+                        countdownEl.style.animation = 'countdownGo 0.6s ease-out';
+                    } else {
+                        countdownEl.style.animation = 'countdownPulse 0.5s ease-out';
+                    }
+
+                    if (currentStep < steps.length - 1) {
+                        setTimeout(nextStep, 700);
+                    } else {
+                        // After "GO!" - fade out and resolve
+                        setTimeout(() => {
+                            overlay.style.transition = 'opacity 0.3s ease';
+                            overlay.style.opacity = '0';
+                            setTimeout(() => {
+                                overlay.remove();
+                                resolve();
+                            }, 300);
+                        }, 500);
+                    }
+                }
+            };
+
+            // Start countdown after brief moment
+            setTimeout(nextStep, 700);
+        });
     }
 
     shuffleQuestions() {
@@ -2612,6 +2764,11 @@ class VirtuosoTheory {
                 this.expectedNotes.add(midi);
             });
             this.displayNotesOnStaff(this.currentQuestion.notes);
+        }
+
+        // Update microphone input range filter to ignore notes far from expected answer
+        if (this.inputManager) {
+            this.inputManager.setExpectedNoteRange(this.expectedNotes);
         }
     }
 
