@@ -1280,7 +1280,18 @@ class VirtuosoTheory {
                     e.preventDefault();
                     loadingScreen.removeEventListener('click', tapHandler);
                     loadingScreen.removeEventListener('touchstart', tapHandler);
-                    
+
+                    // CRITICAL: Start Tone.js immediately in user gesture context
+                    // This MUST happen before any async operations or the context is lost
+                    try {
+                        if (typeof Tone !== 'undefined') {
+                            await Tone.start();
+                            console.log('Tone.js started in user gesture context');
+                        }
+                    } catch (err) {
+                        console.warn('Tone.start() in tap handler:', err);
+                    }
+
                     // Restore loading bar
                     loadingScreen.innerHTML = `
                         <div class="loading-title">VIRTUOSO THEORY</div>
@@ -1288,7 +1299,7 @@ class VirtuosoTheory {
                             <div id="loadingProgress"></div>
                         </div>
                     `;
-                    
+
                     resolve();
                 };
                 
@@ -1363,10 +1374,12 @@ class VirtuosoTheory {
             if (typeof Tone === 'undefined') {
                 throw new Error('Tone.js not loaded');
             }
-            
-            // Start Tone.js - this requires user interaction on mobile
-            await Tone.start();
-            console.log('Tone.js started successfully');
+
+            // Tone.start() should already be called in tap handler, but ensure it's running
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+            console.log('Tone.js audio context state:', Tone.context.state);
             
             // Load your actual piano samples
             const sampleUrls = {
