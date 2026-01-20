@@ -827,153 +827,113 @@ class InputManager {
         return harmonicsFound >= 2;
     }
     
+    /**
+     * YIN Algorithm for pitch detection
+     * Based on: "YIN, a fundamental frequency estimator for speech and music"
+     * by Alain de Cheveigné and Hideki Kawahara (2002)
+     *
+     * Much more accurate than basic autocorrelation for musical instruments
+     */
     autocorrelate(buffer, sampleRate) {
-        // Find a better starting point (first positive zero crossing)
-        let start = 0;
-        for (let i = 1; i < buffer.length / 2; i++) {
-            if (buffer[i-1] < 0 && buffer[i] >= 0) {
-                start = i;
+        // YIN parameters optimized for piano
+        const threshold = 0.15;  // Lower = stricter, 0.1-0.2 typical for music
+        const probabilityThreshold = 0.1;
+
+        // Piano frequency range (A0=27.5Hz to C8=4186Hz)
+        const minFreq = 27.5;
+        const maxFreq = 4186;
+        const minPeriod = Math.floor(sampleRate / maxFreq);  // ~11 samples at 48kHz
+        const maxPeriod = Math.floor(sampleRate / minFreq);  // ~1745 samples at 48kHz
+
+        // Use half the buffer for analysis
+        const halfBuffer = Math.floor(buffer.length / 2);
+        const yinBufferSize = Math.min(halfBuffer, maxPeriod + 1);
+
+        // Step 1 & 2: Calculate cumulative mean normalized difference function
+        const yinBuffer = new Float32Array(yinBufferSize);
+        yinBuffer[0] = 1;  // d'(0) is defined as 1
+
+        let runningSum = 0;
+
+        for (let tau = 1; tau < yinBufferSize; tau++) {
+            // Calculate difference function d(tau)
+            let delta = 0;
+            for (let i = 0; i < halfBuffer; i++) {
+                const diff = buffer[i] - buffer[i + tau];
+                delta += diff * diff;
+            }
+
+            // Cumulative mean normalized difference d'(tau)
+            runningSum += delta;
+            yinBuffer[tau] = runningSum > 0 ? delta * tau / runningSum : 1;
+        }
+
+        // Step 3: Absolute threshold - find first tau where d'(tau) < threshold
+        let tauEstimate = -1;
+
+        for (let tau = minPeriod; tau < yinBufferSize; tau++) {
+            if (yinBuffer[tau] < threshold) {
+                // Found candidate - find the local minimum (dip)
+                while (tau + 1 < yinBufferSize && yinBuffer[tau + 1] < yinBuffer[tau]) {
+                    tau++;
+                }
+                tauEstimate = tau;
                 break;
             }
         }
-        
-        // Piano frequency range limits (A0 to C8)
-        const minPeriod = Math.floor(sampleRate / 4186); // C8 ~10 samples
-        const maxPeriod = Math.floor(sampleRate / 27.5); // A0 ~1600 samples
-        
-        // CRITICAL: Limit search range to avoid subharmonics
-        // For most piano playing, limit to C2 and above initially
-        const practicalMinPeriod = Math.floor(sampleRate / 2000); // ~2000 Hz
-        const practicalMaxPeriod = Math.floor(sampleRate / 65); // ~C2 (65 Hz)
-        
-        let maxCorrelation = 0;
-        let bestOffset = -1;
-        
-        // First pass: Look in practical piano range (C2-C7)
-        for (let offset = practicalMinPeriod; offset < practicalMaxPeriod && offset + start < buffer.length / 2; offset++) {
-            let correlation = 0;
-            let divisor = 0;
-            
-            const windowSize = Math.min(offset * 2, 1000);
-            
-            for (let i = 0; i < windowSize; i++) {
-                if (start + i + offset < buffer.length) {
-                    correlation += buffer[start + i] * buffer[start + i + offset];
-                    divisor += buffer[start + i] * buffer[start + i] + 
-                              buffer[start + i + offset] * buffer[start + i + offset];
+
+        // Fallback: if no estimate found with threshold, find global minimum
+        if (tauEstimate === -1) {
+            let minVal = yinBuffer[minPeriod];
+            tauEstimate = minPeriod;
+
+            for (let tau = minPeriod + 1; tau < yinBufferSize; tau++) {
+                if (yinBuffer[tau] < minVal) {
+                    minVal = yinBuffer[tau];
+                    tauEstimate = tau;
                 }
             }
-            
-            correlation = divisor > 0 ? 2 * correlation / divisor : 0;
-            
-            if (correlation > maxCorrelation) {
-                maxCorrelation = correlation;
-                bestOffset = offset;
+
+            // If minimum is still too high, no reliable pitch
+            if (minVal > 0.5) {
+                return null;
             }
         }
-        
-        // If we didn't find a good match, try the extended range
-        if (maxCorrelation < 0.4) {
-            for (let offset = minPeriod; offset < maxPeriod && offset + start < buffer.length / 2; offset++) {
-                // Skip the range we already searched
-                if (offset >= practicalMinPeriod && offset < practicalMaxPeriod) continue;
-                
-                let correlation = 0;
-                let divisor = 0;
-                
-                const windowSize = Math.min(offset * 2, 1000);
-                
-                for (let i = 0; i < windowSize; i++) {
-                    if (start + i + offset < buffer.length) {
-                        correlation += buffer[start + i] * buffer[start + i + offset];
-                        divisor += buffer[start + i] * buffer[start + i] + 
-                                  buffer[start + i + offset] * buffer[start + i + offset];
-                    }
-                }
-                
-                correlation = divisor > 0 ? 2 * correlation / divisor : 0;
-                
-                // Apply stronger bias against very low frequencies
-                if (offset > practicalMaxPeriod) {
-                    correlation *= 0.8; // Penalize low frequencies
-                }
-                
-                if (correlation > maxCorrelation) {
-                    maxCorrelation = correlation;
-                    bestOffset = offset;
-                }
+
+        // Step 4: Parabolic interpolation for sub-sample precision
+        let betterTau = tauEstimate;
+        if (tauEstimate > 0 && tauEstimate < yinBufferSize - 1) {
+            const s0 = yinBuffer[tauEstimate - 1];
+            const s1 = yinBuffer[tauEstimate];
+            const s2 = yinBuffer[tauEstimate + 1];
+
+            // Find vertex of parabola through three points
+            const denom = 2 * (2 * s1 - s2 - s0);
+            if (Math.abs(denom) > 0.0001) {
+                betterTau = tauEstimate + (s2 - s0) / denom;
             }
         }
-        
-        // Require minimum correlation
-        if (bestOffset === -1 || maxCorrelation < 0.35) {
+
+        // Calculate frequency
+        const frequency = sampleRate / betterTau;
+
+        // Sanity check
+        if (frequency < minFreq || frequency > maxFreq || !isFinite(frequency)) {
             return null;
         }
-        
-        // Check for octave errors by looking at half/double periods
-        if (bestOffset > 0) {
-            // Check if half period has high correlation (octave up)
-            const halfPeriod = Math.floor(bestOffset / 2);
-            if (halfPeriod >= minPeriod) {
-                const halfCorr = this.correlateAt(buffer, start, halfPeriod);
-                if (halfCorr > maxCorrelation * 0.9) {
-                    // Prefer higher octave if correlation is similar
-                    bestOffset = halfPeriod;
-                    maxCorrelation = halfCorr;
-                }
-            }
-            
-            // Check if 1/3 period has high correlation (detecting 3rd harmonic)
-            const thirdPeriod = Math.floor(bestOffset / 3);
-            if (thirdPeriod >= minPeriod) {
-                const thirdCorr = this.correlateAt(buffer, start, thirdPeriod);
-                if (thirdCorr > maxCorrelation * 0.85) {
-                    bestOffset = thirdPeriod;
-                    maxCorrelation = thirdCorr;
-                }
-            }
-        }
-        
-        // Refine with parabolic interpolation
-        if (bestOffset > minPeriod && bestOffset < maxPeriod - 1) {
-            const y1 = this.correlateAt(buffer, start, bestOffset - 1);
-            const y2 = maxCorrelation;
-            const y3 = this.correlateAt(buffer, start, bestOffset + 1);
-            
-            const x0 = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
-            if (!isNaN(x0) && Math.abs(x0) < 1) {
-                bestOffset += x0;
-            }
-        }
-        
-        const frequency = sampleRate / bestOffset;
-        
-        // Final sanity check
-        if (frequency < 27.5 || frequency > 4186) {
+
+        // Calculate confidence (1 - d'(tau), clamped to 0-1)
+        const confidence = Math.max(0, Math.min(1, 1 - yinBuffer[tauEstimate]));
+
+        // Require minimum confidence
+        if (confidence < probabilityThreshold) {
             return null;
         }
-        
-        // Cap confidence at 1.0 (100%)
-        const confidence = Math.min(maxCorrelation, 1.0);
-        
+
         return {
             frequency: frequency,
             confidence: confidence
         };
-    }
-    
-    correlateAt(buffer, start, offset) {
-        let correlation = 0;
-        let divisor = 0;
-        const windowSize = Math.min(offset, 500);
-        
-        for (let i = 0; i < windowSize && start + i + offset < buffer.length; i++) {
-            correlation += buffer[start + i] * buffer[start + i + offset];
-            divisor += buffer[start + i] * buffer[start + i] + 
-                      buffer[start + i + offset] * buffer[start + i + offset];
-        }
-        
-        return divisor > 0 ? 2 * correlation / divisor : 0;
     }
     
     getMedian(arr) {
