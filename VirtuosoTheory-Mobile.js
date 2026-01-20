@@ -5,17 +5,18 @@ const GameIcons = {
     // Returns inline SVG markup for icons
     get(name, size = 16, color = 'currentColor') {
         const icons = {
-            piano: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"/>
-                <line x1="6" y1="4" x2="6" y2="14"/><line x1="10" y1="4" x2="10" y2="14"/>
-                <line x1="14" y1="4" x2="14" y2="14"/><line x1="18" y1="4" x2="18" y2="14"/>
-                <rect x="5" y="4" width="2" height="8" fill="${color}"/><rect x="9" y="4" width="2" height="8" fill="${color}"/>
-                <rect x="13" y="4" width="2" height="8" fill="${color}"/><rect x="17" y="4" width="2" height="8" fill="${color}"/>
+            piano: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="5" width="20" height="14" rx="1.5" stroke="${color}" stroke-width="1.5"/>
+                <path d="M6 5v9M10 5v9M14 5v9M18 5v9" stroke="${color}" stroke-width="1" opacity="0.4"/>
+                <rect x="4.5" y="5" width="2" height="6" rx="0.5" fill="${color}"/>
+                <rect x="8.5" y="5" width="2" height="6" rx="0.5" fill="${color}"/>
+                <rect x="13.5" y="5" width="2" height="6" rx="0.5" fill="${color}"/>
+                <rect x="17.5" y="5" width="2" height="6" rx="0.5" fill="${color}"/>
             </svg>`,
-            microphone: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
-                <rect x="9" y="2" width="6" height="11" rx="3"/>
-                <path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/>
-                <line x1="8" y1="22" x2="16" y2="22"/>
+            microphone: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="2" width="8" height="12" rx="4" stroke="${color}" stroke-width="1.5"/>
+                <path d="M5 11c0 3.866 3.134 7 7 7s7-3.134 7-7" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 18v4M9 22h6" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
             </svg>`,
             midi: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
                 <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
@@ -27,10 +28,10 @@ const GameIcons = {
                 <circle cx="12" cy="18" r="1" fill="${color}"/>
                 <line x1="9" y1="5" x2="15" y2="5"/>
             </svg>`,
-            note: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
-                <circle cx="8" cy="18" r="4" fill="${color}"/>
-                <path d="M12 18V4l8-2v14"/>
-                <circle cx="20" cy="16" r="4" fill="${color}"/>
+            note: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="9" cy="17.5" rx="4" ry="3.5" fill="${color}" transform="rotate(-15 9 17.5)"/>
+                <path d="M12.5 17V4" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12.5 4c3 0 5.5 1.5 5.5 4s-2 3-5.5 3" fill="${color}"/>
             </svg>`,
             score: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
                 <path d="M9 18V5l12-2v13"/>
@@ -46,11 +47,11 @@ const GameIcons = {
                 <path d="M12 2L2 22h20L12 2z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="${color}"/>
             </svg>`,
-            star: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="none">
-                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+            star: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545L12 17l-5.878 3.09 1.123-6.545L2.489 8.91l6.572-.955L12 2z" fill="${color}"/>
             </svg>`,
-            starEmpty: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2">
-                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+            starEmpty: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545L12 17l-5.878 3.09 1.123-6.545L2.489 8.91l6.572-.955L12 2z" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>
             </svg>`,
             back: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
@@ -59,11 +60,13 @@ const GameIcons = {
                 <path d="M18 11V6a2 2 0 0 0-4 0v1"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/>
                 <path d="M10 10.5V2a2 2 0 0 0-4 0v9"/><path d="M6 13V9a2 2 0 0 0-4 0v5a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"/>
             </svg>`,
-            trophy: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/>
-                <path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
-                <path d="M4 22h16"/><path d="M10 22V12a2 2 0 0 1 4 0v10"/>
-                <rect x="6" y="3" width="12" height="9" rx="2"/>
+            trophy: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 4h10v7c0 2.761-2.239 5-5 5s-5-2.239-5-5V4z" stroke="${color}" stroke-width="1.5"/>
+                <path d="M7 6H4c0 2.5 1.5 4 3 4" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M17 6h3c0 2.5-1.5 4-3 4" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 16v3" stroke="${color}" stroke-width="1.5"/>
+                <path d="M8 21h8" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 19h6" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
             </svg>`
         };
         return icons[name] || '';
