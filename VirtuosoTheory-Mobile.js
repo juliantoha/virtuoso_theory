@@ -5,17 +5,18 @@ const GameIcons = {
     // Returns inline SVG markup for icons
     get(name, size = 16, color = 'currentColor') {
         const icons = {
-            piano: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"/>
-                <line x1="6" y1="4" x2="6" y2="14"/><line x1="10" y1="4" x2="10" y2="14"/>
-                <line x1="14" y1="4" x2="14" y2="14"/><line x1="18" y1="4" x2="18" y2="14"/>
-                <rect x="5" y="4" width="2" height="8" fill="${color}"/><rect x="9" y="4" width="2" height="8" fill="${color}"/>
-                <rect x="13" y="4" width="2" height="8" fill="${color}"/><rect x="17" y="4" width="2" height="8" fill="${color}"/>
+            piano: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="5" width="20" height="14" rx="1.5" stroke="${color}" stroke-width="1.5"/>
+                <path d="M6 5v9M10 5v9M14 5v9M18 5v9" stroke="${color}" stroke-width="1" opacity="0.4"/>
+                <rect x="4.5" y="5" width="2" height="6" rx="0.5" fill="${color}"/>
+                <rect x="8.5" y="5" width="2" height="6" rx="0.5" fill="${color}"/>
+                <rect x="13.5" y="5" width="2" height="6" rx="0.5" fill="${color}"/>
+                <rect x="17.5" y="5" width="2" height="6" rx="0.5" fill="${color}"/>
             </svg>`,
-            microphone: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
-                <rect x="9" y="2" width="6" height="11" rx="3"/>
-                <path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/>
-                <line x1="8" y1="22" x2="16" y2="22"/>
+            microphone: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="2" width="8" height="12" rx="4" stroke="${color}" stroke-width="1.5"/>
+                <path d="M5 11c0 3.866 3.134 7 7 7s7-3.134 7-7" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 18v4M9 22h6" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
             </svg>`,
             midi: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
                 <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
@@ -27,10 +28,10 @@ const GameIcons = {
                 <circle cx="12" cy="18" r="1" fill="${color}"/>
                 <line x1="9" y1="5" x2="15" y2="5"/>
             </svg>`,
-            note: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
-                <circle cx="8" cy="18" r="4" fill="${color}"/>
-                <path d="M12 18V4l8-2v14"/>
-                <circle cx="20" cy="16" r="4" fill="${color}"/>
+            note: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="9" cy="17.5" rx="4" ry="3.5" fill="${color}" transform="rotate(-15 9 17.5)"/>
+                <path d="M12.5 17V4" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12.5 4c3 0 5.5 1.5 5.5 4s-2 3-5.5 3" fill="${color}"/>
             </svg>`,
             score: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
                 <path d="M9 18V5l12-2v13"/>
@@ -46,11 +47,11 @@ const GameIcons = {
                 <path d="M12 2L2 22h20L12 2z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="${color}"/>
             </svg>`,
-            star: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="none">
-                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+            star: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545L12 17l-5.878 3.09 1.123-6.545L2.489 8.91l6.572-.955L12 2z" fill="${color}"/>
             </svg>`,
-            starEmpty: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2">
-                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+            starEmpty: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545L12 17l-5.878 3.09 1.123-6.545L2.489 8.91l6.572-.955L12 2z" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>
             </svg>`,
             back: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
@@ -59,11 +60,13 @@ const GameIcons = {
                 <path d="M18 11V6a2 2 0 0 0-4 0v1"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/>
                 <path d="M10 10.5V2a2 2 0 0 0-4 0v9"/><path d="M6 13V9a2 2 0 0 0-4 0v5a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"/>
             </svg>`,
-            trophy: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/>
-                <path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
-                <path d="M4 22h16"/><path d="M10 22V12a2 2 0 0 1 4 0v10"/>
-                <rect x="6" y="3" width="12" height="9" rx="2"/>
+            trophy: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 4h10v7c0 2.761-2.239 5-5 5s-5-2.239-5-5V4z" stroke="${color}" stroke-width="1.5"/>
+                <path d="M7 6H4c0 2.5 1.5 4 3 4" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M17 6h3c0 2.5-1.5 4-3 4" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 16v3" stroke="${color}" stroke-width="1.5"/>
+                <path d="M8 21h8" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M9 19h6" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
             </svg>`
         };
         return icons[name] || '';
@@ -824,153 +827,113 @@ class InputManager {
         return harmonicsFound >= 2;
     }
     
+    /**
+     * YIN Algorithm for pitch detection
+     * Based on: "YIN, a fundamental frequency estimator for speech and music"
+     * by Alain de Cheveigné and Hideki Kawahara (2002)
+     *
+     * Much more accurate than basic autocorrelation for musical instruments
+     */
     autocorrelate(buffer, sampleRate) {
-        // Find a better starting point (first positive zero crossing)
-        let start = 0;
-        for (let i = 1; i < buffer.length / 2; i++) {
-            if (buffer[i-1] < 0 && buffer[i] >= 0) {
-                start = i;
+        // YIN parameters optimized for piano
+        const threshold = 0.15;  // Lower = stricter, 0.1-0.2 typical for music
+        const probabilityThreshold = 0.1;
+
+        // Piano frequency range (A0=27.5Hz to C8=4186Hz)
+        const minFreq = 27.5;
+        const maxFreq = 4186;
+        const minPeriod = Math.floor(sampleRate / maxFreq);  // ~11 samples at 48kHz
+        const maxPeriod = Math.floor(sampleRate / minFreq);  // ~1745 samples at 48kHz
+
+        // Use half the buffer for analysis
+        const halfBuffer = Math.floor(buffer.length / 2);
+        const yinBufferSize = Math.min(halfBuffer, maxPeriod + 1);
+
+        // Step 1 & 2: Calculate cumulative mean normalized difference function
+        const yinBuffer = new Float32Array(yinBufferSize);
+        yinBuffer[0] = 1;  // d'(0) is defined as 1
+
+        let runningSum = 0;
+
+        for (let tau = 1; tau < yinBufferSize; tau++) {
+            // Calculate difference function d(tau)
+            let delta = 0;
+            for (let i = 0; i < halfBuffer; i++) {
+                const diff = buffer[i] - buffer[i + tau];
+                delta += diff * diff;
+            }
+
+            // Cumulative mean normalized difference d'(tau)
+            runningSum += delta;
+            yinBuffer[tau] = runningSum > 0 ? delta * tau / runningSum : 1;
+        }
+
+        // Step 3: Absolute threshold - find first tau where d'(tau) < threshold
+        let tauEstimate = -1;
+
+        for (let tau = minPeriod; tau < yinBufferSize; tau++) {
+            if (yinBuffer[tau] < threshold) {
+                // Found candidate - find the local minimum (dip)
+                while (tau + 1 < yinBufferSize && yinBuffer[tau + 1] < yinBuffer[tau]) {
+                    tau++;
+                }
+                tauEstimate = tau;
                 break;
             }
         }
-        
-        // Piano frequency range limits (A0 to C8)
-        const minPeriod = Math.floor(sampleRate / 4186); // C8 ~10 samples
-        const maxPeriod = Math.floor(sampleRate / 27.5); // A0 ~1600 samples
-        
-        // CRITICAL: Limit search range to avoid subharmonics
-        // For most piano playing, limit to C2 and above initially
-        const practicalMinPeriod = Math.floor(sampleRate / 2000); // ~2000 Hz
-        const practicalMaxPeriod = Math.floor(sampleRate / 65); // ~C2 (65 Hz)
-        
-        let maxCorrelation = 0;
-        let bestOffset = -1;
-        
-        // First pass: Look in practical piano range (C2-C7)
-        for (let offset = practicalMinPeriod; offset < practicalMaxPeriod && offset + start < buffer.length / 2; offset++) {
-            let correlation = 0;
-            let divisor = 0;
-            
-            const windowSize = Math.min(offset * 2, 1000);
-            
-            for (let i = 0; i < windowSize; i++) {
-                if (start + i + offset < buffer.length) {
-                    correlation += buffer[start + i] * buffer[start + i + offset];
-                    divisor += buffer[start + i] * buffer[start + i] + 
-                              buffer[start + i + offset] * buffer[start + i + offset];
+
+        // Fallback: if no estimate found with threshold, find global minimum
+        if (tauEstimate === -1) {
+            let minVal = yinBuffer[minPeriod];
+            tauEstimate = minPeriod;
+
+            for (let tau = minPeriod + 1; tau < yinBufferSize; tau++) {
+                if (yinBuffer[tau] < minVal) {
+                    minVal = yinBuffer[tau];
+                    tauEstimate = tau;
                 }
             }
-            
-            correlation = divisor > 0 ? 2 * correlation / divisor : 0;
-            
-            if (correlation > maxCorrelation) {
-                maxCorrelation = correlation;
-                bestOffset = offset;
+
+            // If minimum is still too high, no reliable pitch
+            if (minVal > 0.5) {
+                return null;
             }
         }
-        
-        // If we didn't find a good match, try the extended range
-        if (maxCorrelation < 0.4) {
-            for (let offset = minPeriod; offset < maxPeriod && offset + start < buffer.length / 2; offset++) {
-                // Skip the range we already searched
-                if (offset >= practicalMinPeriod && offset < practicalMaxPeriod) continue;
-                
-                let correlation = 0;
-                let divisor = 0;
-                
-                const windowSize = Math.min(offset * 2, 1000);
-                
-                for (let i = 0; i < windowSize; i++) {
-                    if (start + i + offset < buffer.length) {
-                        correlation += buffer[start + i] * buffer[start + i + offset];
-                        divisor += buffer[start + i] * buffer[start + i] + 
-                                  buffer[start + i + offset] * buffer[start + i + offset];
-                    }
-                }
-                
-                correlation = divisor > 0 ? 2 * correlation / divisor : 0;
-                
-                // Apply stronger bias against very low frequencies
-                if (offset > practicalMaxPeriod) {
-                    correlation *= 0.8; // Penalize low frequencies
-                }
-                
-                if (correlation > maxCorrelation) {
-                    maxCorrelation = correlation;
-                    bestOffset = offset;
-                }
+
+        // Step 4: Parabolic interpolation for sub-sample precision
+        let betterTau = tauEstimate;
+        if (tauEstimate > 0 && tauEstimate < yinBufferSize - 1) {
+            const s0 = yinBuffer[tauEstimate - 1];
+            const s1 = yinBuffer[tauEstimate];
+            const s2 = yinBuffer[tauEstimate + 1];
+
+            // Find vertex of parabola through three points
+            const denom = 2 * (2 * s1 - s2 - s0);
+            if (Math.abs(denom) > 0.0001) {
+                betterTau = tauEstimate + (s2 - s0) / denom;
             }
         }
-        
-        // Require minimum correlation
-        if (bestOffset === -1 || maxCorrelation < 0.35) {
+
+        // Calculate frequency
+        const frequency = sampleRate / betterTau;
+
+        // Sanity check
+        if (frequency < minFreq || frequency > maxFreq || !isFinite(frequency)) {
             return null;
         }
-        
-        // Check for octave errors by looking at half/double periods
-        if (bestOffset > 0) {
-            // Check if half period has high correlation (octave up)
-            const halfPeriod = Math.floor(bestOffset / 2);
-            if (halfPeriod >= minPeriod) {
-                const halfCorr = this.correlateAt(buffer, start, halfPeriod);
-                if (halfCorr > maxCorrelation * 0.9) {
-                    // Prefer higher octave if correlation is similar
-                    bestOffset = halfPeriod;
-                    maxCorrelation = halfCorr;
-                }
-            }
-            
-            // Check if 1/3 period has high correlation (detecting 3rd harmonic)
-            const thirdPeriod = Math.floor(bestOffset / 3);
-            if (thirdPeriod >= minPeriod) {
-                const thirdCorr = this.correlateAt(buffer, start, thirdPeriod);
-                if (thirdCorr > maxCorrelation * 0.85) {
-                    bestOffset = thirdPeriod;
-                    maxCorrelation = thirdCorr;
-                }
-            }
-        }
-        
-        // Refine with parabolic interpolation
-        if (bestOffset > minPeriod && bestOffset < maxPeriod - 1) {
-            const y1 = this.correlateAt(buffer, start, bestOffset - 1);
-            const y2 = maxCorrelation;
-            const y3 = this.correlateAt(buffer, start, bestOffset + 1);
-            
-            const x0 = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
-            if (!isNaN(x0) && Math.abs(x0) < 1) {
-                bestOffset += x0;
-            }
-        }
-        
-        const frequency = sampleRate / bestOffset;
-        
-        // Final sanity check
-        if (frequency < 27.5 || frequency > 4186) {
+
+        // Calculate confidence (1 - d'(tau), clamped to 0-1)
+        const confidence = Math.max(0, Math.min(1, 1 - yinBuffer[tauEstimate]));
+
+        // Require minimum confidence
+        if (confidence < probabilityThreshold) {
             return null;
         }
-        
-        // Cap confidence at 1.0 (100%)
-        const confidence = Math.min(maxCorrelation, 1.0);
-        
+
         return {
             frequency: frequency,
             confidence: confidence
         };
-    }
-    
-    correlateAt(buffer, start, offset) {
-        let correlation = 0;
-        let divisor = 0;
-        const windowSize = Math.min(offset, 500);
-        
-        for (let i = 0; i < windowSize && start + i + offset < buffer.length; i++) {
-            correlation += buffer[start + i] * buffer[start + i + offset];
-            divisor += buffer[start + i] * buffer[start + i] + 
-                      buffer[start + i + offset] * buffer[start + i + offset];
-        }
-        
-        return divisor > 0 ? 2 * correlation / divisor : 0;
     }
     
     getMedian(arr) {
@@ -1171,76 +1134,94 @@ class VirtuosoTheory {
     createBackButton() {
         const backButton = document.createElement('button');
         backButton.id = 'backButton';
-        backButton.innerHTML = '← BACK TO OCLEF STUDIO';
         backButton.title = 'Return to Oclef Studio';
-        backButton.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 12px 24px;
-            border-radius: 25px;
-            background: linear-gradient(135deg, rgba(0, 20, 40, 0.9) 0%, rgba(0, 40, 60, 0.9) 100%);
-            border: 2px solid rgba(0, 255, 255, 0.6);
-            color: #00ffff;
-            font-size: 13px;
-            font-weight: 700;
-            font-family: 'Orbitron', Arial, sans-serif;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 999;
-            box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.4),
-                inset 0 0 20px rgba(0, 255, 255, 0.1),
-                0 4px 15px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            white-space: nowrap;
-            min-width: 180px;
-            text-align: center;
-        `;
-        
-        // Add hover effects
-        backButton.addEventListener('mouseenter', () => {
-            backButton.style.transform = 'scale(1.05) translateY(-2px)';
-            backButton.style.boxShadow = `
-                0 0 40px rgba(0, 255, 255, 0.6),
-                inset 0 0 30px rgba(0, 255, 255, 0.15),
-                0 6px 20px rgba(0, 0, 0, 0.6)
+
+        // Different design for mobile vs desktop
+        if (this.isMobile || this.isIPad) {
+            // Mobile: small icon button in bottom-left corner
+            backButton.innerHTML = `${GameIcons.get('back', 20, '#00ffff')}`;
+            backButton.style.cssText = `
+                position: fixed;
+                bottom: 15px;
+                left: 15px;
+                width: 44px;
+                height: 44px;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: rgba(0, 20, 40, 0.9);
+                border: 2px solid rgba(0, 255, 255, 0.5);
+                cursor: pointer;
+                z-index: 999;
+                box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
             `;
-            backButton.style.borderColor = 'rgba(0, 255, 255, 0.9)';
-            backButton.style.background = 'linear-gradient(135deg, rgba(0, 40, 60, 0.95) 0%, rgba(0, 60, 80, 0.95) 100%)';
-            backButton.style.color = '#00ffff';
-            backButton.style.textShadow = '0 0 15px rgba(0, 255, 255, 0.8)';
-        });
-        
-        backButton.addEventListener('mouseleave', () => {
-            backButton.style.transform = 'scale(1) translateY(0)';
-            backButton.style.boxShadow = `
-                0 0 30px rgba(0, 255, 255, 0.4),
-                inset 0 0 20px rgba(0, 255, 255, 0.1),
-                0 4px 15px rgba(0, 0, 0, 0.5)
+        } else {
+            // Desktop: full text button
+            backButton.innerHTML = '← BACK TO OCLEF STUDIO';
+            backButton.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                padding: 12px 24px;
+                border-radius: 25px;
+                background: linear-gradient(135deg, rgba(0, 20, 40, 0.9) 0%, rgba(0, 40, 60, 0.9) 100%);
+                border: 2px solid rgba(0, 255, 255, 0.6);
+                color: #00ffff;
+                font-size: 13px;
+                font-weight: 700;
+                font-family: 'Orbitron', Arial, sans-serif;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                z-index: 999;
+                box-shadow:
+                    0 0 30px rgba(0, 255, 255, 0.4),
+                    inset 0 0 20px rgba(0, 255, 255, 0.1),
+                    0 4px 15px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(10px);
+                white-space: nowrap;
+                min-width: 180px;
+                text-align: center;
             `;
-            backButton.style.borderColor = 'rgba(0, 255, 255, 0.6)';
-            backButton.style.background = 'linear-gradient(135deg, rgba(0, 20, 40, 0.9) 0%, rgba(0, 40, 60, 0.9) 100%)';
-            backButton.style.textShadow = 'none';
-        });
-        
+
+            // Add hover effects (desktop only)
+            backButton.addEventListener('mouseenter', () => {
+                backButton.style.transform = 'scale(1.05) translateY(-2px)';
+                backButton.style.boxShadow = `
+                    0 0 40px rgba(0, 255, 255, 0.6),
+                    inset 0 0 30px rgba(0, 255, 255, 0.15),
+                    0 6px 20px rgba(0, 0, 0, 0.6)
+                `;
+                backButton.style.borderColor = 'rgba(0, 255, 255, 0.9)';
+                backButton.style.background = 'linear-gradient(135deg, rgba(0, 40, 60, 0.95) 0%, rgba(0, 60, 80, 0.95) 100%)';
+                backButton.style.color = '#00ffff';
+                backButton.style.textShadow = '0 0 15px rgba(0, 255, 255, 0.8)';
+            });
+
+            backButton.addEventListener('mouseleave', () => {
+                backButton.style.transform = 'scale(1) translateY(0)';
+                backButton.style.boxShadow = `
+                    0 0 30px rgba(0, 255, 255, 0.4),
+                    inset 0 0 20px rgba(0, 255, 255, 0.1),
+                    0 4px 15px rgba(0, 0, 0, 0.5)
+                `;
+                backButton.style.borderColor = 'rgba(0, 255, 255, 0.6)';
+                backButton.style.background = 'linear-gradient(135deg, rgba(0, 20, 40, 0.9) 0%, rgba(0, 40, 60, 0.9) 100%)';
+                backButton.style.textShadow = 'none';
+            });
+        }
+
         // Add click handler to go back to Oclef Studio
         backButton.addEventListener('click', () => {
-            // Navigate back to Oclef Studio
-            window.location.href = '../';
+            window.location.href = 'https://studio.oclef.com';
         });
-        
-        // Add to body
+
         document.body.appendChild(backButton);
-        
-        // Add mobile-specific styling
-        if (this.isMobile) {
-            backButton.style.fontSize = '11px';
-            backButton.style.padding = '10px 18px';
-            backButton.style.minWidth = '150px';
-        }
     }
     
     async initializeGame() {
@@ -1252,7 +1233,12 @@ class VirtuosoTheory {
             
             // Show click/tap to start screen - required for AudioContext on all modern browsers
             await this.showTapToStart();
-            
+
+            // On mobile, prompt user to rotate to landscape for better experience
+            if (this.isMobile && !this.isIPad) {
+                await this.checkAndPromptLandscape();
+            }
+
             // Request wake lock on mobile to prevent screen sleep
             if ('wakeLock' in navigator && this.isMobile) {
                 try {
@@ -1403,7 +1389,108 @@ class VirtuosoTheory {
             }
         });
     }
-    
+
+    async checkAndPromptLandscape() {
+        return new Promise((resolve) => {
+            // Check if already in landscape
+            const isLandscape = () => window.innerWidth > window.innerHeight;
+
+            if (isLandscape()) {
+                resolve();
+                return;
+            }
+
+            // Create orientation overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'orientationOverlay';
+            overlay.innerHTML = `
+                <style>
+                    @keyframes rotatePhone {
+                        0%, 20% { transform: rotate(0deg); }
+                        40%, 60% { transform: rotate(-90deg); }
+                        80%, 100% { transform: rotate(0deg); }
+                    }
+                    @keyframes pulseGlow {
+                        0%, 100% { filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.6)); }
+                        50% { filter: drop-shadow(0 0 30px rgba(0, 255, 255, 1)); }
+                    }
+                    #orientationOverlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 50%, #0a0a1a 100%);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10000;
+                        font-family: 'Orbitron', Arial, sans-serif;
+                    }
+                    .rotate-phone-icon {
+                        width: 120px;
+                        height: 120px;
+                        margin-bottom: 30px;
+                        animation: rotatePhone 3s ease-in-out infinite, pulseGlow 2s ease-in-out infinite;
+                    }
+                    .rotate-message {
+                        color: #00ffff;
+                        font-size: 18px;
+                        text-align: center;
+                        text-transform: uppercase;
+                        letter-spacing: 3px;
+                        margin-bottom: 15px;
+                        text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+                    }
+                    .rotate-submessage {
+                        color: rgba(255, 255, 255, 0.6);
+                        font-size: 12px;
+                        text-align: center;
+                        letter-spacing: 1px;
+                    }
+                </style>
+                <svg class="rotate-phone-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Phone body -->
+                    <rect x="25" y="10" width="50" height="80" rx="8" stroke="#00ffff" stroke-width="3" fill="rgba(0, 255, 255, 0.1)"/>
+                    <!-- Screen -->
+                    <rect x="30" y="18" width="40" height="56" rx="2" fill="rgba(0, 255, 255, 0.2)"/>
+                    <!-- Home button -->
+                    <circle cx="50" cy="82" r="4" stroke="#00ffff" stroke-width="2" fill="none"/>
+                    <!-- Speaker -->
+                    <rect x="42" y="13" width="16" height="2" rx="1" fill="#00ffff"/>
+                    <!-- Rotation arrow -->
+                    <path d="M85 50 C85 30, 70 20, 50 20" stroke="#ff00ff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <polygon points="50,12 50,28 38,20" fill="#ff00ff"/>
+                </svg>
+                <div class="rotate-message">Rotate Your Device</div>
+                <div class="rotate-submessage">For the best experience, please turn your phone sideways</div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            // Listen for orientation changes
+            const checkOrientation = () => {
+                if (isLandscape()) {
+                    // Small delay for smooth transition
+                    setTimeout(() => {
+                        overlay.style.opacity = '0';
+                        overlay.style.transition = 'opacity 0.3s ease';
+                        setTimeout(() => {
+                            overlay.remove();
+                            resolve();
+                        }, 300);
+                    }, 200);
+                    window.removeEventListener('resize', checkOrientation);
+                    window.removeEventListener('orientationchange', checkOrientation);
+                }
+            };
+
+            window.addEventListener('resize', checkOrientation);
+            window.addEventListener('orientationchange', checkOrientation);
+        });
+    }
+
     async loadLevels() {
         try {
             // Use the embedded data from window.QUIZ_DATA
@@ -1598,8 +1685,8 @@ class VirtuosoTheory {
         
         // Smaller keys for mobile
         const whiteKeyCount = allNotes.filter(n => n.type === 'white').length;
-        const whiteKeyWidth = this.isMobile ? 32 : 45;
-        const whiteKeyHeight = this.isMobile ? 100 : 198;
+        const whiteKeyWidth = this.isMobile ? 30 : 45;
+        const whiteKeyHeight = this.isMobile ? 85 : 198;
         const blackKeyWidth = whiteKeyWidth * 0.6;
         const blackKeyHeight = whiteKeyHeight * 0.65;
         
@@ -2363,7 +2450,13 @@ class VirtuosoTheory {
             this.closeLevelModal();
             this.openCategoryModal();
         });
-        
+
+        // Category modal close button
+        const categoryBackBtn = document.getElementById('categoryBackBtn');
+        categoryBackBtn.addEventListener('click', () => {
+            this.closeCategoryModal();
+        });
+
         document.getElementById('categoryModal').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) {
                 this.closeCategoryModal();
