@@ -1140,6 +1140,11 @@ class VirtuosoTheory {
         this.categories = [];
         this.gameSettings = {};
         this.gameInitialized = false;
+
+        // Game duration settings
+        this.selectedDuration = 60; // Default 60 seconds
+        this.durationPresets = [20, 30, 60, 120];
+        this.maxDuration = 300;
         
         // Mobile detection
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -2411,22 +2416,236 @@ class VirtuosoTheory {
 
     selectLevel(level) {
         this.currentLevel = level;
-        document.getElementById('levelName').textContent = level.name;
         this.closeLevelModal();
-        
+
+        // Show duration selector modal
+        this.showDurationSelector(level);
+    }
+
+    showDurationSelector(level) {
+        // Use level's default time or global default
+        const defaultTime = level.timeLimit || 60;
+        this.selectedDuration = defaultTime;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'durationModal';
+        overlay.innerHTML = `
+            <style>
+                #durationModal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.9);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 600;
+                    font-family: 'Orbitron', Arial, sans-serif;
+                }
+                .duration-content {
+                    background: linear-gradient(135deg, rgba(0, 20, 40, 0.98) 0%, rgba(20, 0, 40, 0.98) 100%);
+                    border: 2px solid rgba(0, 255, 255, 0.5);
+                    border-radius: 20px;
+                    padding: 30px;
+                    max-width: 400px;
+                    width: 90%;
+                    text-align: center;
+                }
+                .duration-title {
+                    font-size: 24px;
+                    color: #00ffff;
+                    margin-bottom: 8px;
+                    text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+                }
+                .duration-level {
+                    font-size: 14px;
+                    color: rgba(255, 255, 255, 0.6);
+                    margin-bottom: 25px;
+                }
+                .duration-presets {
+                    display: flex;
+                    justify-content: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                    margin-bottom: 20px;
+                }
+                .duration-btn {
+                    padding: 12px 20px;
+                    font-family: 'Orbitron', Arial, sans-serif;
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: #00ffff;
+                    background: rgba(0, 255, 255, 0.1);
+                    border: 2px solid rgba(0, 255, 255, 0.4);
+                    border-radius: 10px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    min-width: 70px;
+                }
+                .duration-btn:hover {
+                    background: rgba(0, 255, 255, 0.2);
+                    transform: scale(1.05);
+                }
+                .duration-btn.selected {
+                    background: rgba(0, 255, 255, 0.3);
+                    border-color: #00ffff;
+                    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+                }
+                .duration-custom {
+                    margin: 20px 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                }
+                .duration-custom label {
+                    color: rgba(255, 255, 255, 0.7);
+                    font-size: 14px;
+                }
+                .duration-input {
+                    width: 80px;
+                    padding: 10px;
+                    font-family: 'Orbitron', Arial, sans-serif;
+                    font-size: 18px;
+                    text-align: center;
+                    color: #00ffff;
+                    background: rgba(0, 0, 0, 0.5);
+                    border: 2px solid rgba(0, 255, 255, 0.4);
+                    border-radius: 8px;
+                    outline: none;
+                }
+                .duration-input:focus {
+                    border-color: #00ffff;
+                    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+                }
+                .duration-max {
+                    font-size: 11px;
+                    color: rgba(255, 255, 255, 0.4);
+                    margin-top: 5px;
+                }
+                .duration-start {
+                    margin-top: 25px;
+                    padding: 15px 50px;
+                    font-family: 'Orbitron', Arial, sans-serif;
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #000;
+                    background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%);
+                    border: none;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+                    transition: all 0.2s ease;
+                }
+                .duration-start:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 0 50px rgba(0, 255, 255, 0.7);
+                }
+                .duration-back {
+                    position: absolute;
+                    top: 15px;
+                    left: 15px;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: rgba(0, 255, 255, 0.1);
+                    border: 2px solid rgba(0, 255, 255, 0.3);
+                    color: #00ffff;
+                    font-size: 20px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s ease;
+                }
+                .duration-back:hover {
+                    background: rgba(0, 255, 255, 0.2);
+                    transform: scale(1.1);
+                }
+            </style>
+            <div class="duration-content" style="position: relative;">
+                <button class="duration-back" id="durationBack">←</button>
+                <div class="duration-title">SET DURATION</div>
+                <div class="duration-level">${level.name}</div>
+                <div class="duration-presets">
+                    ${this.durationPresets.map(t => `
+                        <button class="duration-btn ${t === defaultTime ? 'selected' : ''}" data-time="${t}">${t}s</button>
+                    `).join('')}
+                </div>
+                <div class="duration-custom">
+                    <label>Custom:</label>
+                    <input type="number" class="duration-input" id="customDuration"
+                           value="${defaultTime}" min="10" max="${this.maxDuration}">
+                    <label>sec</label>
+                </div>
+                <div class="duration-max">Maximum: ${this.maxDuration} seconds</div>
+                <button class="duration-start" id="durationStart">START</button>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Preset button handlers
+        const presetBtns = overlay.querySelectorAll('.duration-btn');
+        const customInput = document.getElementById('customDuration');
+
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                presetBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                const time = parseInt(btn.dataset.time);
+                this.selectedDuration = time;
+                customInput.value = time;
+            });
+        });
+
+        // Custom input handler
+        customInput.addEventListener('input', () => {
+            let value = parseInt(customInput.value) || 60;
+            value = Math.max(10, Math.min(this.maxDuration, value));
+            this.selectedDuration = value;
+
+            // Update preset selection
+            presetBtns.forEach(btn => {
+                btn.classList.toggle('selected', parseInt(btn.dataset.time) === value);
+            });
+        });
+
+        // Back button
+        document.getElementById('durationBack').addEventListener('click', () => {
+            overlay.remove();
+            this.openLevelModal();
+        });
+
+        // Start button
+        document.getElementById('durationStart').addEventListener('click', () => {
+            // Validate and clamp duration
+            this.selectedDuration = Math.max(10, Math.min(this.maxDuration, this.selectedDuration));
+            overlay.remove();
+            this.confirmLevelSelection(level);
+        });
+    }
+
+    confirmLevelSelection(level) {
+        document.getElementById('levelName').textContent = level.name;
+
         const startBtn = document.getElementById('startBtn');
         startBtn.textContent = 'Start Game';
         startBtn.classList.add('primary');
-        
+
         // Add pulsing glow effect to draw attention
         startBtn.style.background = 'linear-gradient(135deg, rgba(0, 255, 255, 0.4) 0%, rgba(0, 200, 255, 0.4) 100%)';
         startBtn.style.borderColor = '#00ffff';
         startBtn.style.boxShadow = '0 0 30px rgba(0, 255, 255, 0.6)';
         startBtn.style.transform = 'scale(1.05)';
-        
+
         // Add pulsing animation
         startBtn.style.animation = 'pulseReady 2s ease-in-out infinite';
-        
+
         // Create or update the animation styles
         if (!document.getElementById('readyButtonStyles')) {
             const style = document.createElement('style');
@@ -2447,7 +2666,7 @@ class VirtuosoTheory {
                         background: linear-gradient(135deg, rgba(0, 255, 255, 0.5) 0%, rgba(0, 200, 255, 0.5) 100%);
                     }
                 }
-                
+
                 .control-button.primary.ready-to-start {
                     position: relative;
                     overflow: visible;
@@ -2456,10 +2675,11 @@ class VirtuosoTheory {
             `;
             document.head.appendChild(style);
         }
-        
+
         startBtn.classList.add('ready-to-start');
-        
-        document.getElementById('timer').textContent = level.timeLimit;
+
+        // Show selected duration
+        document.getElementById('timer').textContent = this.selectedDuration;
     }
 
     openCategoryModal() {
@@ -2578,7 +2798,8 @@ class VirtuosoTheory {
         this.streak = 0;
         this.maxStreak = 0;
         this.questionIndex = 0;
-        this.timeRemaining = this.currentLevel.timeLimit;
+        // Use selected duration (from duration selector) or fall back to level default
+        this.timeRemaining = this.selectedDuration || this.currentLevel.timeLimit || 60;
         this.gameActive = true;
         this.isPaused = false;
 
