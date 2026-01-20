@@ -548,14 +548,29 @@ class InputManager {
             this.presenceFilter.Q.value = 1;
             this.presenceFilter.gain.value = 2; // Subtle 2dB boost
 
+            // 5. Compressor for consistent levels and cleaner detection
+            // Helps with: varying piano dynamics, room acoustics, mic distance
+            this.compressor = this.audioContext.createDynamicsCompressor();
+            this.compressor.threshold.value = -24;  // Start compressing at -24dB
+            this.compressor.knee.value = 12;        // Soft knee for natural response
+            this.compressor.ratio.value = 4;        // 4:1 compression ratio
+            this.compressor.attack.value = 0.003;   // 3ms attack (fast for piano transients)
+            this.compressor.release.value = 0.15;   // 150ms release (smooth decay)
+
+            // 6. Makeup gain after compression
+            this.makeupGain = this.audioContext.createGain();
+            this.makeupGain.gain.value = 2; // +6dB makeup gain
+
             // Connect the audio chain - NO bandpass that kills low notes!
             this.microphone.connect(this.rumbleFilter);
             this.rumbleFilter.connect(this.humFilter60);
             this.humFilter60.connect(this.humFilter50);
             this.humFilter50.connect(this.highCutFilter);
             this.highCutFilter.connect(this.presenceFilter);
-            this.presenceFilter.connect(this.analyser);
-            this.presenceFilter.connect(this.harmonicAnalyser);
+            this.presenceFilter.connect(this.compressor);
+            this.compressor.connect(this.makeupGain);
+            this.makeupGain.connect(this.analyser);
+            this.makeupGain.connect(this.harmonicAnalyser);
             
             // Initialize piano-specific detection parameters
             this.initializePianoDetection();
@@ -571,13 +586,19 @@ class InputManager {
             
             // Mark as listening
             this.isListening = true;
-            
+
+            // MUTE the game's sampler to prevent feedback loop
+            // (detected notes playing through speakers and being picked up again)
+            if (this.game.sampler) {
+                this.game.sampler.volume.value = -Infinity;
+            }
+
             // Start pitch detection loop
             this.detectPitch();
-            
+
             // Update status
             this.updateStatus('Listening for piano...');
-            
+
             // Show calibration helper
             this.showCalibrationHelper();
             
@@ -1011,13 +1032,18 @@ class InputManager {
     
     disableMicrophone() {
         this.isListening = false;
-        
+
+        // UNMUTE the game's sampler when leaving microphone mode
+        if (this.game.sampler) {
+            this.game.sampler.volume.value = 0; // Restore to normal volume
+        }
+
         // Hide calibration helper
         const helper = document.getElementById('calibrationHelper');
         if (helper) {
             helper.remove();
         }
-        
+
         // Hide debug monitor
         if (this.debugMonitor) {
             this.debugMonitor.style.display = 'none';
@@ -1033,27 +1059,42 @@ class InputManager {
             this.rumbleFilter.disconnect();
             this.rumbleFilter = null;
         }
-        
-        if (this.humFilter) {
-            this.humFilter.disconnect();
-            this.humFilter = null;
+
+        if (this.humFilter60) {
+            this.humFilter60.disconnect();
+            this.humFilter60 = null;
         }
-        
-        if (this.pianoRangeFilter) {
-            this.pianoRangeFilter.disconnect();
-            this.pianoRangeFilter = null;
+
+        if (this.humFilter50) {
+            this.humFilter50.disconnect();
+            this.humFilter50 = null;
         }
-        
+
         if (this.highCutFilter) {
             this.highCutFilter.disconnect();
             this.highCutFilter = null;
         }
-        
+
+        if (this.presenceFilter) {
+            this.presenceFilter.disconnect();
+            this.presenceFilter = null;
+        }
+
+        if (this.compressor) {
+            this.compressor.disconnect();
+            this.compressor = null;
+        }
+
+        if (this.makeupGain) {
+            this.makeupGain.disconnect();
+            this.makeupGain = null;
+        }
+
         if (this.analyser) {
             this.analyser.disconnect();
             this.analyser = null;
         }
-        
+
         if (this.harmonicAnalyser) {
             this.harmonicAnalyser.disconnect();
             this.harmonicAnalyser = null;
