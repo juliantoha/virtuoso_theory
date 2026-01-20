@@ -32,7 +32,7 @@
     <meta property="twitter:image" content="https://studio.oclef.com/virtuoso_theory/og-image.jpg">
     <meta property="twitter:url" content="https://studio.oclef.com/virtuoso_theory/">
     <meta property="twitter:title" content="Virtuoso Theory - Master Music Theory Through Gaming">
-    <meta property="twitter:description" content="🎹 Cyberpunk meets classical music education. Train sight-reading with piano, MIDI, or microphone input. Multiple difficulty levels. Start playing now!">
+    <meta property="twitter:description" content="Cyberpunk meets classical music education. Train sight-reading with piano, MIDI, or microphone input. Multiple difficulty levels. Start playing now!">
     
     <!-- Additional Meta Tags -->
     <meta name="robots" content="index, follow">
@@ -307,6 +307,21 @@
         .feedback-incorrect {
             color: #ff0066;
             text-shadow: 0 0 40px rgba(255, 0, 102, 0.9);
+        }
+
+        .feedback-milestone {
+            color: #ffcc00;
+            text-shadow:
+                0 0 20px rgba(255, 204, 0, 1),
+                0 0 40px rgba(255, 204, 0, 0.8),
+                0 0 60px rgba(255, 136, 0, 0.6);
+            animation: milestoneFlash 0.4s ease-out;
+        }
+
+        @keyframes milestoneFlash {
+            0% { transform: translateX(-50%) scale(1.3); opacity: 0; }
+            50% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
         }
 
         /* Piano Container */
@@ -868,7 +883,7 @@
                 "id": "note-identification",
                 "name": "Note Identification",
                 "description": "Master reading individual notes on the staff",
-                "icon": "🎵",
+                "icon": "note",
                 "levels": [
                     {
                         "id": "treble-basics",
@@ -979,7 +994,7 @@
                 "id": "intervals-dyads",
                 "name": "Intervals & Dyads",
                 "description": "Learn interval recognition and two-note combinations",
-                "icon": "🎹",
+                "icon": "piano",
                 "levels": [
                     {
                         "id": "seconds",
@@ -1044,7 +1059,7 @@
                 "id": "triads-chords",
                 "name": "Triads & Chord Quality",
                 "description": "Master three-note chords and their inversions",
-                "icon": "🎼",
+                "icon": "score",
                 "levels": [
                     {
                         "id": "major-triads",
@@ -1087,7 +1102,7 @@
                 "id": "five-finger-scales",
                 "name": "Five Finger Scales",
                 "description": "Practice scale patterns and positions",
-                "icon": "✋",
+                "icon": "hand",
                 "levels": [
                     {
                         "id": "c-position",
@@ -1128,12 +1143,105 @@
                         ]
                     }
                 ]
+            },
+            {
+                "id": "virtuoso-seeding",
+                "name": "Virtuoso Seeding",
+                "description": "Tournament seeding rounds",
+                "icon": "trophy",
+                "levels": [
+                    {
+                        "id": "seed-level-0",
+                        "name": "Level 0 - Treble Clef",
+                        "description": "C4 to F5 (Treble Staff)",
+                        "difficulty": 1,
+                        "timeLimit": 20,
+                        "targetScore": 50,
+                        "questions": [
+                            { "note": "C4", "type": "single" },
+                            { "note": "D4", "type": "single" },
+                            { "note": "E4", "type": "single" },
+                            { "note": "F4", "type": "single" },
+                            { "note": "G4", "type": "single" },
+                            { "note": "A4", "type": "single" },
+                            { "note": "B4", "type": "single" },
+                            { "note": "C5", "type": "single" },
+                            { "note": "D5", "type": "single" },
+                            { "note": "E5", "type": "single" },
+                            { "note": "F5", "type": "single" }
+                        ]
+                    },
+                    {
+                        "id": "seed-level-1",
+                        "name": "Level 1 - All Staff",
+                        "description": "C3 to F5 (Both Clefs)",
+                        "difficulty": 2,
+                        "timeLimit": 20,
+                        "targetScore": 50,
+                        "questions": [
+                            { "note": "C3", "type": "single" },
+                            { "note": "D3", "type": "single" },
+                            { "note": "E3", "type": "single" },
+                            { "note": "F3", "type": "single" },
+                            { "note": "G3", "type": "single" },
+                            { "note": "A3", "type": "single" },
+                            { "note": "B3", "type": "single" },
+                            { "note": "C4", "type": "single" },
+                            { "note": "D4", "type": "single" },
+                            { "note": "E4", "type": "single" },
+                            { "note": "F4", "type": "single" },
+                            { "note": "G4", "type": "single" },
+                            { "note": "A4", "type": "single" },
+                            { "note": "B4", "type": "single" },
+                            { "note": "C5", "type": "single" },
+                            { "note": "D5", "type": "single" },
+                            { "note": "E5", "type": "single" },
+                            { "note": "F5", "type": "single" }
+                        ]
+                    },
+                    {
+                        "id": "seed-level-2",
+                        "name": "Level 2 - Dyads",
+                        "description": "M2, m3, M3, P4, P5 intervals",
+                        "difficulty": 3,
+                        "timeLimit": 20,
+                        "targetScore": 50,
+                        "questions": [
+                            { "notes": ["C3", "D3"], "type": "dyad", "interval": "M2" },
+                            { "notes": ["G3", "A3"], "type": "dyad", "interval": "M2" },
+                            { "notes": ["C4", "D4"], "type": "dyad", "interval": "M2" },
+                            { "notes": ["G4", "A4"], "type": "dyad", "interval": "M2" },
+                            { "notes": ["D5", "E5"], "type": "dyad", "interval": "M2" },
+                            { "notes": ["D3", "F3"], "type": "dyad", "interval": "m3" },
+                            { "notes": ["E3", "G3"], "type": "dyad", "interval": "m3" },
+                            { "notes": ["D4", "F4"], "type": "dyad", "interval": "m3" },
+                            { "notes": ["E4", "G4"], "type": "dyad", "interval": "m3" },
+                            { "notes": ["A4", "C5"], "type": "dyad", "interval": "m3" },
+                            { "notes": ["C3", "E3"], "type": "dyad", "interval": "M3" },
+                            { "notes": ["F3", "A3"], "type": "dyad", "interval": "M3" },
+                            { "notes": ["C4", "E4"], "type": "dyad", "interval": "M3" },
+                            { "notes": ["F4", "A4"], "type": "dyad", "interval": "M3" },
+                            { "notes": ["C5", "E5"], "type": "dyad", "interval": "M3" },
+                            { "notes": ["C3", "F3"], "type": "dyad", "interval": "P4" },
+                            { "notes": ["G3", "C4"], "type": "dyad", "interval": "P4" },
+                            { "notes": ["C4", "F4"], "type": "dyad", "interval": "P4" },
+                            { "notes": ["G4", "C5"], "type": "dyad", "interval": "P4" },
+                            { "notes": ["C5", "F5"], "type": "dyad", "interval": "P4" },
+                            { "notes": ["C3", "G3"], "type": "dyad", "interval": "P5" },
+                            { "notes": ["F3", "C4"], "type": "dyad", "interval": "P5" },
+                            { "notes": ["C4", "G4"], "type": "dyad", "interval": "P5" },
+                            { "notes": ["F4", "C5"], "type": "dyad", "interval": "P5" },
+                            { "notes": ["G4", "D5"], "type": "dyad", "interval": "P5" }
+                        ]
+                    }
+                ]
             }
         ],
         "settings": {
             "scorePerCorrect": 10,
-            "streakBonus": 2,
-            "feedbackDuration": 1000,
+            "multiplierGrowth": 0.15,
+            "maxMultiplier": 4.0,
+            "feedbackDuration": 800,
             "defaultDifficulty": 1,
             "unlockNextLevelAt": 80
         }

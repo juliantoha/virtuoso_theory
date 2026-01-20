@@ -1,5 +1,75 @@
 // VirtuosoTheory-Mobile.js - Complete Rewrite with JSON-based Levels
 
+// SVG Icon helper - simple, clean icons matching the cyberpunk aesthetic
+const GameIcons = {
+    // Returns inline SVG markup for icons
+    get(name, size = 16, color = 'currentColor') {
+        const icons = {
+            piano: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <line x1="6" y1="4" x2="6" y2="14"/><line x1="10" y1="4" x2="10" y2="14"/>
+                <line x1="14" y1="4" x2="14" y2="14"/><line x1="18" y1="4" x2="18" y2="14"/>
+                <rect x="5" y="4" width="2" height="8" fill="${color}"/><rect x="9" y="4" width="2" height="8" fill="${color}"/>
+                <rect x="13" y="4" width="2" height="8" fill="${color}"/><rect x="17" y="4" width="2" height="8" fill="${color}"/>
+            </svg>`,
+            microphone: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <rect x="9" y="2" width="6" height="11" rx="3"/>
+                <path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="22"/>
+                <line x1="8" y1="22" x2="16" y2="22"/>
+            </svg>`,
+            midi: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>
+                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                <circle cx="12" cy="9" r="1" fill="${color}"/><circle cx="12" cy="15" r="1" fill="${color}"/>
+            </svg>`,
+            touch: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <rect x="5" y="2" width="14" height="20" rx="2"/>
+                <circle cx="12" cy="18" r="1" fill="${color}"/>
+                <line x1="9" y1="5" x2="15" y2="5"/>
+            </svg>`,
+            note: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <circle cx="8" cy="18" r="4" fill="${color}"/>
+                <path d="M12 18V4l8-2v14"/>
+                <circle cx="20" cy="16" r="4" fill="${color}"/>
+            </svg>`,
+            score: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <path d="M9 18V5l12-2v13"/>
+                <circle cx="6" cy="18" r="3" fill="${color}"/>
+                <circle cx="18" cy="16" r="3" fill="${color}"/>
+                <line x1="2" y1="8" x2="7" y2="8" opacity="0.5"/><line x1="2" y1="11" x2="7" y2="11" opacity="0.5"/>
+                <line x1="2" y1="14" x2="7" y2="14" opacity="0.5"/>
+            </svg>`,
+            check: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>`,
+            warning: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round">
+                <path d="M12 2L2 22h20L12 2z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="${color}"/>
+            </svg>`,
+            star: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="none">
+                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+            </svg>`,
+            starEmpty: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2">
+                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+            </svg>`,
+            back: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>`,
+            hand: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 11V6a2 2 0 0 0-4 0v1"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/>
+                <path d="M10 10.5V2a2 2 0 0 0-4 0v9"/><path d="M6 13V9a2 2 0 0 0-4 0v5a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"/>
+            </svg>`,
+            trophy: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/>
+                <path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
+                <path d="M4 22h16"/><path d="M10 22V12a2 2 0 0 1 4 0v10"/>
+                <rect x="6" y="3" width="12" height="9" rx="2"/>
+            </svg>`
+        };
+        return icons[name] || '';
+    }
+};
+
 // Mobile-optimized InputManager class
 class InputManager {
     constructor(game) {
@@ -55,15 +125,15 @@ class InputManager {
         `;
         
         // Only show available methods on mobile
-        const methods = this.isMobile ? 
+        const methods = this.isMobile ?
             [
-                { id: 'virtual', name: 'Touch', icon: '📱', description: 'Touch Piano' },
-                { id: 'microphone', name: 'Acoustic', icon: '🎤', description: 'Microphone' }
-            ] : 
+                { id: 'virtual', name: 'Touch', icon: GameIcons.get('touch', 14), description: 'Touch Piano' },
+                { id: 'microphone', name: 'Acoustic', icon: GameIcons.get('microphone', 14), description: 'Microphone' }
+            ] :
             [
-                { id: 'virtual', name: 'Virtual', icon: '🎹', description: 'Keyboard/Click' },
-                { id: 'midi', name: 'MIDI', icon: '🎛️', description: 'USB/MIDI' },
-                { id: 'microphone', name: 'Acoustic', icon: '🎤', description: 'Microphone' }
+                { id: 'virtual', name: 'Virtual', icon: GameIcons.get('piano', 14), description: 'Keyboard/Click' },
+                { id: 'midi', name: 'MIDI', icon: GameIcons.get('midi', 14), description: 'USB/MIDI' },
+                { id: 'microphone', name: 'Acoustic', icon: GameIcons.get('microphone', 14), description: 'Microphone' }
             ];
         
         // Add CSS for disabled state
@@ -89,15 +159,15 @@ class InputManager {
             button.className = 'input-method-btn';
             
             const leftContent = document.createElement('div');
-            leftContent.style.cssText = 'display: flex; align-items: center; gap: 4px;';
+            leftContent.style.cssText = 'display: flex; align-items: center; gap: 6px;';
             leftContent.innerHTML = `
-                <span style="font-size: 14px; opacity: 0.9;">${method.icon}</span>
+                <span style="display: flex; align-items: center; opacity: 0.9;">${method.icon}</span>
                 <span style="font-weight: 600;">${method.name}</span>
             `;
-            
+
             const rightContent = document.createElement('div');
-            rightContent.innerHTML = this.currentInputMethod === method.id ? 
-                '<span style="color: #00ff88; font-size: 12px;">✔</span>' : '';
+            rightContent.innerHTML = this.currentInputMethod === method.id ?
+                `<span style="color: #00ff88; display: flex; align-items: center;">${GameIcons.get('check', 12, '#00ff88')}</span>` : '';
             
             button.appendChild(leftContent);
             button.appendChild(rightContent);
@@ -151,7 +221,7 @@ class InputManager {
             if (message.includes('MIDI:')) {
                 shortMessage = 'MIDI Connected';
             } else if (message.includes('Listening')) {
-                shortMessage = '🎤 Listening';
+                shortMessage = 'Mic Active';
             } else if (message.includes('Virtual')) {
                 shortMessage = 'Virtual Active';
             } else if (message.includes('Touch')) {
@@ -303,8 +373,8 @@ class InputManager {
                     box-shadow: 0 0 30px rgba(255, 102, 102, 0.5);
                 `;
                 notification.innerHTML = `
-                    <div style="color: #ff6666; font-weight: bold; margin-bottom: 10px;">
-                        ⚠️ INPUT CHANGED
+                    <div style="color: #ff6666; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        ${GameIcons.get('warning', 18, '#ff6666')} INPUT CHANGED
                     </div>
                     <div style="font-size: 12px;">
                         Switched to Virtual Piano<br>
@@ -491,7 +561,7 @@ class InputManager {
             this.detectPitch();
             
             // Update status
-            this.updateStatus('🎤 Listening for piano...');
+            this.updateStatus('Listening for piano...');
             
             // Show calibration helper
             this.showCalibrationHelper();
@@ -615,7 +685,7 @@ class InputManager {
                                 this.lastStableNote = roundedMidiNote;
                                 
                                 const noteName = this.game.midiToNote(roundedMidiNote);
-                                this.updateStatus(`🎵 ${noteName}`);
+                                this.updateStatus(`Note: ${noteName}`);
                             }
                         }
                         
@@ -633,7 +703,7 @@ class InputManager {
                 this.lastDetectedNote = null;
                 this.noteStabilityCounter = 0;
                 this.pitchBuffer = [];
-                this.updateStatus('🎤 Listening...');
+                this.updateStatus('Listening...');
             }
         }
         
@@ -887,8 +957,8 @@ class InputManager {
         `;
         
         helper.innerHTML = `
-            <div style="color: #00ffff; font-weight: bold; margin-bottom: 8px;">
-                🎤 MICROPHONE MODE
+            <div style="color: #00ffff; font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                ${GameIcons.get('microphone', 16, '#00ffff')} MICROPHONE MODE
             </div>
             <div style="font-size: 11px; opacity: 0.8;">
                 Play notes clearly on your piano<br>
@@ -997,6 +1067,7 @@ class VirtuosoTheory {
         this.pressedKeys = new Set();
         this.expectedNotes = new Set();
         this.playedNotes = new Set();
+        this.questionAnswered = false;
         this.categories = [];
         this.gameSettings = {};
         this.gameInitialized = false;
@@ -1107,10 +1178,8 @@ class VirtuosoTheory {
         try {
             console.log('Starting game initialization...');
             
-            // For mobile, show tap to start screen
-            if (this.isMobile || this.isIPad) {
-                await this.showTapToStart();
-            }
+            // Show click/tap to start screen - required for AudioContext on all modern browsers
+            await this.showTapToStart();
             
             // Request wake lock on mobile to prevent screen sleep
             if ('wakeLock' in navigator && this.isMobile) {
@@ -1196,13 +1265,14 @@ class VirtuosoTheory {
         return new Promise((resolve) => {
             const loadingScreen = document.getElementById('loadingScreen');
             if (loadingScreen) {
+                const startText = this.isMobile || this.isIPad ? 'TAP TO START' : 'CLICK TO START';
                 loadingScreen.innerHTML = `
                     <div class="loading-title">VIRTUOSO THEORY</div>
                     <div style="color: #00ffff; font-size: 18px; margin-top: 30px; animation: pulse 1.5s ease-in-out infinite;">
-                        TAP TO START
+                        ${startText}
                     </div>
                     <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 10px;">
-                        Audio requires user interaction on mobile
+                        Audio requires user interaction to start
                     </div>
                 `;
                 
@@ -1262,7 +1332,7 @@ class VirtuosoTheory {
                 id: 'note-identification',
                 name: 'Note Identification',
                 description: 'Master reading notes',
-                icon: '🎵',
+                icon: 'note',
                 levels: [
                     {
                         id: 'basic',
@@ -1604,9 +1674,9 @@ class VirtuosoTheory {
         
         this.sampler.triggerAttack(Tone.Frequency(midiNote, "midi"), undefined, velocityNorm);
         
-        if (this.gameActive && !this.isPaused && this.currentQuestion) {
+        if (this.gameActive && !this.isPaused && this.currentQuestion && !this.questionAnswered) {
             this.playedNotes.add(midiNote);
-            
+
             // Check if we've completed the current question
             if (this.currentQuestion.type === 'single') {
                 if (this.expectedNotes.has(midiNote)) {
@@ -1623,7 +1693,7 @@ class VirtuosoTheory {
                         break;
                     }
                 }
-                
+
                 if (allNotesPlayed) {
                     this.handleCorrectAnswer();
                 } else if (!this.expectedNotes.has(midiNote)) {
@@ -1984,8 +2054,8 @@ class VirtuosoTheory {
         let y, staff, needsLedger;
         
         if (midi === 60) {
-            // Middle C
-            y = (this.staff.trebleY + (this.staff.lineSpacing * 2) + this.staff.bassY - (this.staff.lineSpacing * 2)) / 2;
+            // Middle C - one ledger line below treble staff (E4 is bottom line at +2)
+            y = this.staff.trebleY + (this.staff.lineSpacing * 3);
             staff = 'middle';
             needsLedger = true;
         } else if (midi > 60) {
@@ -2038,8 +2108,12 @@ class VirtuosoTheory {
         this.categories.forEach(category => {
             const card = document.createElement('div');
             card.className = 'category-card';
+            // Get icon - support both icon names and legacy emojis
+            const iconMap = { 'note': 'note', 'piano': 'piano', 'score': 'score', 'hand': 'hand', 'trophy': 'trophy', '🎵': 'note', '🎹': 'piano', '🎼': 'score', '✋': 'hand', '🏆': 'trophy' };
+            const iconName = iconMap[category.icon] || 'note';
+            const iconSvg = GameIcons.get(iconName, 32, '#00ffff');
             card.innerHTML = `
-                <div class="category-icon">${category.icon}</div>
+                <div class="category-icon" style="display: flex; justify-content: center; align-items: center;">${iconSvg}</div>
                 <div class="category-name">${category.name}</div>
                 <div class="category-desc">${category.description}</div>
                 <div class="category-desc" style="margin-top: 5px; color: #00ff88;">
@@ -2073,9 +2147,9 @@ class VirtuosoTheory {
                 let stars = '';
                 for (let i = 0; i < 5; i++) {
                     if (i < (level.difficulty || 1)) {
-                        stars += '<span class="difficulty-star">★</span>';
+                        stars += `<span class="difficulty-star">${GameIcons.get('star', 14, '#ffcc00')}</span>`;
                     } else {
-                        stars += '<span class="difficulty-star" style="opacity: 0.3;">★</span>';
+                        stars += `<span class="difficulty-star" style="opacity: 0.3;">${GameIcons.get('starEmpty', 14, '#ffcc00')}</span>`;
                     }
                 }
                 
@@ -2318,7 +2392,8 @@ class VirtuosoTheory {
         
         this.expectedNotes.clear();
         this.playedNotes.clear();
-        
+        this.questionAnswered = false;
+
         // Check if we need to switch input methods for chord levels
         if (this.inputManager) {
             this.inputManager.checkAndSwitchFromMicrophoneIfNeeded();
@@ -2342,47 +2417,90 @@ class VirtuosoTheory {
     }
 
     handleCorrectAnswer() {
-        const baseScore = this.gameSettings.scorePerCorrect || 10;
-        const streakBonus = this.gameSettings.streakBonus || 2;
-        
-        this.score += baseScore + (this.streak * streakBonus);
+        // Prevent duplicate scoring for the same question
+        this.questionAnswered = true;
+
+        // Increment streak first (streak 1 = first correct answer)
         this.streak++;
         this.maxStreak = Math.max(this.maxStreak, this.streak);
-        
+
+        // Calculate score with multiplier system
+        const baseScore = this.gameSettings.scorePerCorrect || 10;
+        const multiplierGrowth = this.gameSettings.multiplierGrowth || 0.15;
+        const maxMultiplier = this.gameSettings.maxMultiplier || 4.0;
+
+        // Multiplier increases with streak, capped at max
+        const multiplier = Math.min(1 + ((this.streak - 1) * multiplierGrowth), maxMultiplier);
+        let points = Math.round(baseScore * multiplier);
+
+        // Milestone bonuses - awarded once when reaching specific streaks
+        const milestones = {
+            3: { bonus: 15, message: 'Hot Streak!' },
+            5: { bonus: 25, message: 'On Fire!' },
+            7: { bonus: 40, message: 'Blazing!' },
+            10: { bonus: 75, message: 'Unstoppable!' },
+            15: { bonus: 150, message: 'Legendary!' }
+        };
+
+        let feedbackMessage = 'PERFECT!';
+        const milestone = milestones[this.streak];
+        if (milestone) {
+            points += milestone.bonus;
+            feedbackMessage = milestone.message;
+        }
+
+        this.score += points;
         document.getElementById('score').textContent = this.score;
         document.getElementById('streak').textContent = this.streak;
-        
-        this.showFeedback('PERFECT!', true);
-        
+
+        // Show feedback with multiplier indicator for high streaks
+        if (this.streak >= 3 && !milestone) {
+            feedbackMessage = `${multiplier.toFixed(1)}x`;
+        }
+        this.showFeedback(feedbackMessage, true, milestone ? 'milestone' : null);
+
         // Vibration feedback on mobile
         if (this.isMobile && navigator.vibrate) {
-            navigator.vibrate([20, 10, 20]);
+            navigator.vibrate(milestone ? [30, 20, 30, 20, 30] : [20, 10, 20]);
         }
-        
+
         setTimeout(() => this.nextQuestion(), this.gameSettings.feedbackDuration || 1000);
     }
 
     handleIncorrectAnswer() {
+        const lostStreak = this.streak;
         this.streak = 0;
         document.getElementById('streak').textContent = this.streak;
-        
-        this.showFeedback('Try Again', false);
-        
+
+        // Show streak lost message if they had a decent streak going
+        const message = lostStreak >= 5 ? `Streak Lost! (${lostStreak})` : 'Try Again';
+        this.showFeedback(message, false);
+
         // Different vibration pattern for incorrect
         if (this.isMobile && navigator.vibrate) {
-            navigator.vibrate(50);
+            navigator.vibrate(lostStreak >= 5 ? [100, 50, 100] : 50);
         }
     }
 
-    showFeedback(text, isCorrect) {
+    showFeedback(text, isCorrect, type = null) {
         const feedback = document.getElementById('feedbackDisplay');
         feedback.textContent = text;
-        feedback.className = 'feedback-display ' + (isCorrect ? 'feedback-correct' : 'feedback-incorrect');
+
+        // Build class list based on feedback type
+        let className = 'feedback-display ';
+        if (type === 'milestone') {
+            className += 'feedback-milestone';
+        } else {
+            className += isCorrect ? 'feedback-correct' : 'feedback-incorrect';
+        }
+        feedback.className = className;
         feedback.style.opacity = '1';
-        
+
+        // Milestone feedback stays slightly longer
+        const duration = type === 'milestone' ? 1200 : 800;
         setTimeout(() => {
             feedback.style.opacity = '0';
-        }, 1000);
+        }, duration);
     }
 
     togglePause() {
@@ -2422,11 +2540,10 @@ class VirtuosoTheory {
         
         const existingNotes = this.staff.svg.querySelectorAll('.staff-note, .staff-note-glow, .ledger-line');
         existingNotes.forEach(el => el.remove());
-        
-        const targetScore = this.currentLevel?.targetScore || 100;
-        const percentage = Math.round((this.score / targetScore) * 100);
-        
-        this.showFeedback(`Score: ${this.score} (${percentage}%)`, percentage >= 80);
+
+        // Show final score with max streak info
+        const streakText = this.maxStreak >= 5 ? ` | Best: ${this.maxStreak}x` : '';
+        this.showFeedback(`Final Score: ${this.score}${streakText}`, true);
     }
 
     drawGrid() {
