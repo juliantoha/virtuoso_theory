@@ -1337,24 +1337,44 @@ class VirtuosoTheory {
         return new Promise((resolve) => {
             const loadingScreen = document.getElementById('loadingScreen');
             if (loadingScreen) {
-                const startText = this.isMobile || this.isIPad ? 'TAP TO START' : 'CLICK TO START';
+                // Clear and simple UI with an actual button for reliable mobile taps
                 loadingScreen.innerHTML = `
                     <div class="loading-title">VIRTUOSO THEORY</div>
-                    <div style="color: #00ffff; font-size: 18px; margin-top: 30px; animation: pulse 1.5s ease-in-out infinite;">
-                        ${startText}
-                    </div>
-                    <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 10px;">
-                        Audio requires user interaction to start
-                    </div>
+                    <button id="startButton" style="
+                        margin-top: 40px;
+                        padding: 20px 60px;
+                        font-size: 20px;
+                        font-family: 'Orbitron', Arial, sans-serif;
+                        font-weight: bold;
+                        letter-spacing: 2px;
+                        color: #000;
+                        background: linear-gradient(180deg, #00ffff 0%, #00cccc 100%);
+                        border: none;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        box-shadow:
+                            0 0 30px rgba(0, 255, 255, 0.6),
+                            0 4px 15px rgba(0, 0, 0, 0.4),
+                            inset 0 2px 0 rgba(255, 255, 255, 0.3);
+                        text-transform: uppercase;
+                        -webkit-tap-highlight-color: transparent;
+                        touch-action: manipulation;
+                        user-select: none;
+                    ">START</button>
                 `;
-                
+
+                const startButton = document.getElementById('startButton');
+
                 const tapHandler = async (e) => {
                     e.preventDefault();
-                    loadingScreen.removeEventListener('click', tapHandler);
-                    loadingScreen.removeEventListener('touchstart', tapHandler);
+                    e.stopPropagation();
+
+                    // Disable button to prevent double-tap
+                    startButton.disabled = true;
+                    startButton.textContent = 'LOADING...';
+                    startButton.style.opacity = '0.7';
 
                     // CRITICAL: Start Tone.js immediately in user gesture context
-                    // This MUST happen before any async operations or the context is lost
                     try {
                         if (typeof Tone !== 'undefined') {
                             await Tone.start();
@@ -1374,9 +1394,10 @@ class VirtuosoTheory {
 
                     resolve();
                 };
-                
-                loadingScreen.addEventListener('click', tapHandler);
-                loadingScreen.addEventListener('touchstart', tapHandler, { passive: false });
+
+                // Use both click and touchend for maximum compatibility
+                startButton.addEventListener('click', tapHandler);
+                startButton.addEventListener('touchend', tapHandler, { passive: false });
             } else {
                 resolve();
             }
