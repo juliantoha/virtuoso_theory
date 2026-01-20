@@ -1,0 +1,31 @@
+<!-- Ultra-simple version - Save as favicon.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Dark background -->
+  <rect width="64" height="64" fill="#000000"/>
+  
+  <!-- Filters for glow effect -->
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Simple V with glow -->
+  <g transform="translate(32, 32)">
+    <!-- Glow layer -->
+    <path d="M -20,-18 L 0,18 L 20,-18 L 10,-18 L 0,2 L -10,-18 Z" 
+          fill="#00ffff" 
+          opacity="0.3" 
+          filter="url(#glow)"
+          transform="scale(1.2)"/>
+    
+    <!-- Main V -->
+    <path d="M -20,-18 L 0,18 L 20,-18 L 10,-18 L 0,2 L -10,-18 Z" 
+          fill="#00ffff" 
+          filter="url(#glow)"/>
+  </g>
+</svg>
