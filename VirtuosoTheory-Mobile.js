@@ -1255,7 +1255,7 @@ class VirtuosoTheory {
 
         // Add click handler to go back to Oclef Studio
         backButton.addEventListener('click', () => {
-            window.location.href = '../';
+            window.location.href = 'https://studio.oclef.com';
         });
 
         document.body.appendChild(backButton);
@@ -1270,7 +1270,12 @@ class VirtuosoTheory {
             
             // Show click/tap to start screen - required for AudioContext on all modern browsers
             await this.showTapToStart();
-            
+
+            // On mobile, prompt user to rotate to landscape for better experience
+            if (this.isMobile && !this.isIPad) {
+                await this.checkAndPromptLandscape();
+            }
+
             // Request wake lock on mobile to prevent screen sleep
             if ('wakeLock' in navigator && this.isMobile) {
                 try {
@@ -1421,7 +1426,108 @@ class VirtuosoTheory {
             }
         });
     }
-    
+
+    async checkAndPromptLandscape() {
+        return new Promise((resolve) => {
+            // Check if already in landscape
+            const isLandscape = () => window.innerWidth > window.innerHeight;
+
+            if (isLandscape()) {
+                resolve();
+                return;
+            }
+
+            // Create orientation overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'orientationOverlay';
+            overlay.innerHTML = `
+                <style>
+                    @keyframes rotatePhone {
+                        0%, 20% { transform: rotate(0deg); }
+                        40%, 60% { transform: rotate(-90deg); }
+                        80%, 100% { transform: rotate(0deg); }
+                    }
+                    @keyframes pulseGlow {
+                        0%, 100% { filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.6)); }
+                        50% { filter: drop-shadow(0 0 30px rgba(0, 255, 255, 1)); }
+                    }
+                    #orientationOverlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 50%, #0a0a1a 100%);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10000;
+                        font-family: 'Orbitron', Arial, sans-serif;
+                    }
+                    .rotate-phone-icon {
+                        width: 120px;
+                        height: 120px;
+                        margin-bottom: 30px;
+                        animation: rotatePhone 3s ease-in-out infinite, pulseGlow 2s ease-in-out infinite;
+                    }
+                    .rotate-message {
+                        color: #00ffff;
+                        font-size: 18px;
+                        text-align: center;
+                        text-transform: uppercase;
+                        letter-spacing: 3px;
+                        margin-bottom: 15px;
+                        text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+                    }
+                    .rotate-submessage {
+                        color: rgba(255, 255, 255, 0.6);
+                        font-size: 12px;
+                        text-align: center;
+                        letter-spacing: 1px;
+                    }
+                </style>
+                <svg class="rotate-phone-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Phone body -->
+                    <rect x="25" y="10" width="50" height="80" rx="8" stroke="#00ffff" stroke-width="3" fill="rgba(0, 255, 255, 0.1)"/>
+                    <!-- Screen -->
+                    <rect x="30" y="18" width="40" height="56" rx="2" fill="rgba(0, 255, 255, 0.2)"/>
+                    <!-- Home button -->
+                    <circle cx="50" cy="82" r="4" stroke="#00ffff" stroke-width="2" fill="none"/>
+                    <!-- Speaker -->
+                    <rect x="42" y="13" width="16" height="2" rx="1" fill="#00ffff"/>
+                    <!-- Rotation arrow -->
+                    <path d="M85 50 C85 30, 70 20, 50 20" stroke="#ff00ff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <polygon points="50,12 50,28 38,20" fill="#ff00ff"/>
+                </svg>
+                <div class="rotate-message">Rotate Your Device</div>
+                <div class="rotate-submessage">For the best experience, please turn your phone sideways</div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            // Listen for orientation changes
+            const checkOrientation = () => {
+                if (isLandscape()) {
+                    // Small delay for smooth transition
+                    setTimeout(() => {
+                        overlay.style.opacity = '0';
+                        overlay.style.transition = 'opacity 0.3s ease';
+                        setTimeout(() => {
+                            overlay.remove();
+                            resolve();
+                        }, 300);
+                    }, 200);
+                    window.removeEventListener('resize', checkOrientation);
+                    window.removeEventListener('orientationchange', checkOrientation);
+                }
+            };
+
+            window.addEventListener('resize', checkOrientation);
+            window.addEventListener('orientationchange', checkOrientation);
+        });
+    }
+
     async loadLevels() {
         try {
             // Use the embedded data from window.QUIZ_DATA
