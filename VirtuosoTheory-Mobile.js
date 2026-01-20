@@ -1171,76 +1171,94 @@ class VirtuosoTheory {
     createBackButton() {
         const backButton = document.createElement('button');
         backButton.id = 'backButton';
-        backButton.innerHTML = '← BACK TO OCLEF STUDIO';
         backButton.title = 'Return to Oclef Studio';
-        backButton.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 12px 24px;
-            border-radius: 25px;
-            background: linear-gradient(135deg, rgba(0, 20, 40, 0.9) 0%, rgba(0, 40, 60, 0.9) 100%);
-            border: 2px solid rgba(0, 255, 255, 0.6);
-            color: #00ffff;
-            font-size: 13px;
-            font-weight: 700;
-            font-family: 'Orbitron', Arial, sans-serif;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 999;
-            box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.4),
-                inset 0 0 20px rgba(0, 255, 255, 0.1),
-                0 4px 15px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            white-space: nowrap;
-            min-width: 180px;
-            text-align: center;
-        `;
-        
-        // Add hover effects
-        backButton.addEventListener('mouseenter', () => {
-            backButton.style.transform = 'scale(1.05) translateY(-2px)';
-            backButton.style.boxShadow = `
-                0 0 40px rgba(0, 255, 255, 0.6),
-                inset 0 0 30px rgba(0, 255, 255, 0.15),
-                0 6px 20px rgba(0, 0, 0, 0.6)
+
+        // Different design for mobile vs desktop
+        if (this.isMobile || this.isIPad) {
+            // Mobile: small icon button in bottom-left corner
+            backButton.innerHTML = `${GameIcons.get('back', 20, '#00ffff')}`;
+            backButton.style.cssText = `
+                position: fixed;
+                bottom: 15px;
+                left: 15px;
+                width: 44px;
+                height: 44px;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: rgba(0, 20, 40, 0.9);
+                border: 2px solid rgba(0, 255, 255, 0.5);
+                cursor: pointer;
+                z-index: 999;
+                box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
             `;
-            backButton.style.borderColor = 'rgba(0, 255, 255, 0.9)';
-            backButton.style.background = 'linear-gradient(135deg, rgba(0, 40, 60, 0.95) 0%, rgba(0, 60, 80, 0.95) 100%)';
-            backButton.style.color = '#00ffff';
-            backButton.style.textShadow = '0 0 15px rgba(0, 255, 255, 0.8)';
-        });
-        
-        backButton.addEventListener('mouseleave', () => {
-            backButton.style.transform = 'scale(1) translateY(0)';
-            backButton.style.boxShadow = `
-                0 0 30px rgba(0, 255, 255, 0.4),
-                inset 0 0 20px rgba(0, 255, 255, 0.1),
-                0 4px 15px rgba(0, 0, 0, 0.5)
+        } else {
+            // Desktop: full text button
+            backButton.innerHTML = '← BACK TO OCLEF STUDIO';
+            backButton.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                padding: 12px 24px;
+                border-radius: 25px;
+                background: linear-gradient(135deg, rgba(0, 20, 40, 0.9) 0%, rgba(0, 40, 60, 0.9) 100%);
+                border: 2px solid rgba(0, 255, 255, 0.6);
+                color: #00ffff;
+                font-size: 13px;
+                font-weight: 700;
+                font-family: 'Orbitron', Arial, sans-serif;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                z-index: 999;
+                box-shadow:
+                    0 0 30px rgba(0, 255, 255, 0.4),
+                    inset 0 0 20px rgba(0, 255, 255, 0.1),
+                    0 4px 15px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(10px);
+                white-space: nowrap;
+                min-width: 180px;
+                text-align: center;
             `;
-            backButton.style.borderColor = 'rgba(0, 255, 255, 0.6)';
-            backButton.style.background = 'linear-gradient(135deg, rgba(0, 20, 40, 0.9) 0%, rgba(0, 40, 60, 0.9) 100%)';
-            backButton.style.textShadow = 'none';
-        });
-        
+
+            // Add hover effects (desktop only)
+            backButton.addEventListener('mouseenter', () => {
+                backButton.style.transform = 'scale(1.05) translateY(-2px)';
+                backButton.style.boxShadow = `
+                    0 0 40px rgba(0, 255, 255, 0.6),
+                    inset 0 0 30px rgba(0, 255, 255, 0.15),
+                    0 6px 20px rgba(0, 0, 0, 0.6)
+                `;
+                backButton.style.borderColor = 'rgba(0, 255, 255, 0.9)';
+                backButton.style.background = 'linear-gradient(135deg, rgba(0, 40, 60, 0.95) 0%, rgba(0, 60, 80, 0.95) 100%)';
+                backButton.style.color = '#00ffff';
+                backButton.style.textShadow = '0 0 15px rgba(0, 255, 255, 0.8)';
+            });
+
+            backButton.addEventListener('mouseleave', () => {
+                backButton.style.transform = 'scale(1) translateY(0)';
+                backButton.style.boxShadow = `
+                    0 0 30px rgba(0, 255, 255, 0.4),
+                    inset 0 0 20px rgba(0, 255, 255, 0.1),
+                    0 4px 15px rgba(0, 0, 0, 0.5)
+                `;
+                backButton.style.borderColor = 'rgba(0, 255, 255, 0.6)';
+                backButton.style.background = 'linear-gradient(135deg, rgba(0, 20, 40, 0.9) 0%, rgba(0, 40, 60, 0.9) 100%)';
+                backButton.style.textShadow = 'none';
+            });
+        }
+
         // Add click handler to go back to Oclef Studio
         backButton.addEventListener('click', () => {
-            // Navigate back to Oclef Studio
             window.location.href = '../';
         });
-        
-        // Add to body
+
         document.body.appendChild(backButton);
-        
-        // Add mobile-specific styling
-        if (this.isMobile) {
-            backButton.style.fontSize = '11px';
-            backButton.style.padding = '10px 18px';
-            backButton.style.minWidth = '150px';
-        }
     }
     
     async initializeGame() {
@@ -1598,8 +1616,8 @@ class VirtuosoTheory {
         
         // Smaller keys for mobile
         const whiteKeyCount = allNotes.filter(n => n.type === 'white').length;
-        const whiteKeyWidth = this.isMobile ? 32 : 45;
-        const whiteKeyHeight = this.isMobile ? 100 : 198;
+        const whiteKeyWidth = this.isMobile ? 30 : 45;
+        const whiteKeyHeight = this.isMobile ? 85 : 198;
         const blackKeyWidth = whiteKeyWidth * 0.6;
         const blackKeyHeight = whiteKeyHeight * 0.65;
         
