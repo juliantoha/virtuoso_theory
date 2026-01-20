@@ -1061,6 +1061,7 @@ class VirtuosoTheory {
         this.pressedKeys = new Set();
         this.expectedNotes = new Set();
         this.playedNotes = new Set();
+        this.questionAnswered = false;
         this.categories = [];
         this.gameSettings = {};
         this.gameInitialized = false;
@@ -1667,9 +1668,9 @@ class VirtuosoTheory {
         
         this.sampler.triggerAttack(Tone.Frequency(midiNote, "midi"), undefined, velocityNorm);
         
-        if (this.gameActive && !this.isPaused && this.currentQuestion) {
+        if (this.gameActive && !this.isPaused && this.currentQuestion && !this.questionAnswered) {
             this.playedNotes.add(midiNote);
-            
+
             // Check if we've completed the current question
             if (this.currentQuestion.type === 'single') {
                 if (this.expectedNotes.has(midiNote)) {
@@ -1686,7 +1687,7 @@ class VirtuosoTheory {
                         break;
                     }
                 }
-                
+
                 if (allNotesPlayed) {
                     this.handleCorrectAnswer();
                 } else if (!this.expectedNotes.has(midiNote)) {
@@ -2385,7 +2386,8 @@ class VirtuosoTheory {
         
         this.expectedNotes.clear();
         this.playedNotes.clear();
-        
+        this.questionAnswered = false;
+
         // Check if we need to switch input methods for chord levels
         if (this.inputManager) {
             this.inputManager.checkAndSwitchFromMicrophoneIfNeeded();
@@ -2409,9 +2411,12 @@ class VirtuosoTheory {
     }
 
     handleCorrectAnswer() {
+        // Prevent duplicate scoring for the same question
+        this.questionAnswered = true;
+
         const baseScore = this.gameSettings.scorePerCorrect || 10;
         const streakBonus = this.gameSettings.streakBonus || 2;
-        
+
         this.score += baseScore + (this.streak * streakBonus);
         this.streak++;
         this.maxStreak = Math.max(this.maxStreak, this.streak);
