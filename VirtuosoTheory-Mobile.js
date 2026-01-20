@@ -2420,47 +2420,87 @@ class VirtuosoTheory {
         // Prevent duplicate scoring for the same question
         this.questionAnswered = true;
 
-        const baseScore = this.gameSettings.scorePerCorrect || 10;
-        const streakBonus = this.gameSettings.streakBonus || 2;
-
-        this.score += baseScore + (this.streak * streakBonus);
+        // Increment streak first (streak 1 = first correct answer)
         this.streak++;
         this.maxStreak = Math.max(this.maxStreak, this.streak);
-        
+
+        // Calculate score with multiplier system
+        const baseScore = this.gameSettings.scorePerCorrect || 10;
+        const multiplierGrowth = this.gameSettings.multiplierGrowth || 0.15;
+        const maxMultiplier = this.gameSettings.maxMultiplier || 4.0;
+
+        // Multiplier increases with streak, capped at max
+        const multiplier = Math.min(1 + ((this.streak - 1) * multiplierGrowth), maxMultiplier);
+        let points = Math.round(baseScore * multiplier);
+
+        // Milestone bonuses - awarded once when reaching specific streaks
+        const milestones = {
+            3: { bonus: 15, message: 'Hot Streak!' },
+            5: { bonus: 25, message: 'On Fire!' },
+            7: { bonus: 40, message: 'Blazing!' },
+            10: { bonus: 75, message: 'Unstoppable!' },
+            15: { bonus: 150, message: 'Legendary!' }
+        };
+
+        let feedbackMessage = 'PERFECT!';
+        const milestone = milestones[this.streak];
+        if (milestone) {
+            points += milestone.bonus;
+            feedbackMessage = milestone.message;
+        }
+
+        this.score += points;
         document.getElementById('score').textContent = this.score;
         document.getElementById('streak').textContent = this.streak;
-        
-        this.showFeedback('PERFECT!', true);
-        
+
+        // Show feedback with multiplier indicator for high streaks
+        if (this.streak >= 3 && !milestone) {
+            feedbackMessage = `${multiplier.toFixed(1)}x`;
+        }
+        this.showFeedback(feedbackMessage, true, milestone ? 'milestone' : null);
+
         // Vibration feedback on mobile
         if (this.isMobile && navigator.vibrate) {
-            navigator.vibrate([20, 10, 20]);
+            navigator.vibrate(milestone ? [30, 20, 30, 20, 30] : [20, 10, 20]);
         }
-        
+
         setTimeout(() => this.nextQuestion(), this.gameSettings.feedbackDuration || 1000);
     }
 
     handleIncorrectAnswer() {
+        const lostStreak = this.streak;
         this.streak = 0;
         document.getElementById('streak').textContent = this.streak;
-        
-        this.showFeedback('Try Again', false);
-        
+
+        // Show streak lost message if they had a decent streak going
+        const message = lostStreak >= 5 ? `Streak Lost! (${lostStreak})` : 'Try Again';
+        this.showFeedback(message, false);
+
         // Different vibration pattern for incorrect
         if (this.isMobile && navigator.vibrate) {
-            navigator.vibrate(50);
+            navigator.vibrate(lostStreak >= 5 ? [100, 50, 100] : 50);
         }
     }
 
-    showFeedback(text, isCorrect) {
+    showFeedback(text, isCorrect, type = null) {
         const feedback = document.getElementById('feedbackDisplay');
         feedback.textContent = text;
-        feedback.className = 'feedback-display ' + (isCorrect ? 'feedback-correct' : 'feedback-incorrect');
+
+        // Build class list based on feedback type
+        let className = 'feedback-display ';
+        if (type === 'milestone') {
+            className += 'feedback-milestone';
+        } else {
+            className += isCorrect ? 'feedback-correct' : 'feedback-incorrect';
+        }
+        feedback.className = className;
         feedback.style.opacity = '1';
-        
+
+        // Milestone feedback stays slightly longer
+        const duration = type === 'milestone' ? 1200 : 800;
         setTimeout(() => {
             feedback.style.opacity = '0';
-        }, 1000);
+        }, duration);
     }
 
     togglePause() {
