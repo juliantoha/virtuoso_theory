@@ -2694,11 +2694,21 @@ class VirtuosoTheory {
             const steps = ['3', '2', '1', 'GO!'];
             let currentStep = 0;
 
+            // Play initial beep for "3"
+            this.playUISound('countdown');
+
             const nextStep = () => {
                 currentStep++;
                 if (currentStep < steps.length) {
                     const text = steps[currentStep];
                     countdownEl.textContent = text;
+
+                    // Play sound effect
+                    if (text === 'GO!') {
+                        this.playUISound('go');
+                    } else {
+                        this.playUISound('countdown');
+                    }
 
                     // Reset animation
                     countdownEl.style.animation = 'none';
@@ -2841,6 +2851,9 @@ class VirtuosoTheory {
         document.getElementById('score').textContent = this.score;
         document.getElementById('streak').textContent = this.streak;
 
+        // Update streak multiplier indicator
+        this.updateStreakIndicator(multiplier, this.streak);
+
         // Show feedback with multiplier indicator for high streaks
         if (this.streak >= 3 && !milestone) {
             feedbackMessage = `${multiplier.toFixed(1)}x`;
@@ -2863,6 +2876,12 @@ class VirtuosoTheory {
         const lostStreak = this.streak;
         this.streak = 0;
         document.getElementById('streak').textContent = this.streak;
+
+        // Hide streak indicator
+        this.hideStreakIndicator();
+
+        // Screen shake effect
+        this.triggerScreenShake();
 
         // Show streak lost message if they had a decent streak going
         const message = lostStreak >= 5 ? `Streak Lost! (${lostStreak})` : 'Try Again';
@@ -2893,6 +2912,101 @@ class VirtuosoTheory {
         setTimeout(() => {
             feedback.style.opacity = '0';
         }, duration);
+    }
+
+    updateStreakIndicator(multiplier, streak) {
+        const indicator = document.getElementById('streakIndicator');
+        const multiplierEl = document.getElementById('streakMultiplier');
+        const barEl = document.getElementById('streakBar');
+
+        if (streak >= 2) {
+            // Show indicator
+            indicator.classList.add('active');
+
+            // Update multiplier text
+            multiplierEl.textContent = `${multiplier.toFixed(1)}x`;
+
+            // Calculate bar fill (0-100% based on streak, max at 15)
+            const barPercent = Math.min((streak / 15) * 100, 100);
+            barEl.style.width = `${barPercent}%`;
+
+            // Update color tier based on streak
+            indicator.classList.remove('hot', 'fire', 'legendary');
+            if (streak >= 10) {
+                indicator.classList.add('legendary');
+            } else if (streak >= 5) {
+                indicator.classList.add('fire');
+            } else if (streak >= 3) {
+                indicator.classList.add('hot');
+            }
+        } else {
+            indicator.classList.remove('active');
+        }
+    }
+
+    hideStreakIndicator() {
+        const indicator = document.getElementById('streakIndicator');
+        indicator.classList.remove('active', 'hot', 'fire', 'legendary');
+
+        // Reset bar
+        const barEl = document.getElementById('streakBar');
+        barEl.style.width = '0%';
+    }
+
+    triggerScreenShake() {
+        const gameContainer = document.querySelector('.game-container');
+        if (gameContainer) {
+            gameContainer.classList.add('shake');
+            setTimeout(() => {
+                gameContainer.classList.remove('shake');
+            }, 400);
+        }
+    }
+
+    // Play UI sound effects using Tone.js
+    playUISound(type) {
+        if (!this.sampler) return;
+
+        try {
+            const now = Tone.now();
+            switch (type) {
+                case 'countdown':
+                    // Short beep for countdown numbers
+                    const countSynth = new Tone.Synth({
+                        oscillator: { type: 'triangle' },
+                        envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
+                    }).toDestination();
+                    countSynth.triggerAttackRelease('C5', '16n', now);
+                    setTimeout(() => countSynth.dispose(), 500);
+                    break;
+
+                case 'go':
+                    // Triumphant chord for GO!
+                    const goSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    goSynth.set({
+                        oscillator: { type: 'triangle' },
+                        envelope: { attack: 0.01, decay: 0.3, sustain: 0.2, release: 0.5 }
+                    });
+                    goSynth.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '8n', now);
+                    setTimeout(() => goSynth.dispose(), 1000);
+                    break;
+
+                case 'results':
+                    // Fanfare for results screen
+                    const fanfareSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    fanfareSynth.set({
+                        oscillator: { type: 'triangle' },
+                        envelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.8 }
+                    });
+                    fanfareSynth.triggerAttackRelease(['C4', 'E4', 'G4'], '8n', now);
+                    fanfareSynth.triggerAttackRelease(['E4', 'G4', 'C5'], '8n', now + 0.2);
+                    fanfareSynth.triggerAttackRelease(['G4', 'C5', 'E5'], '4n', now + 0.4);
+                    setTimeout(() => fanfareSynth.dispose(), 2000);
+                    break;
+            }
+        } catch (e) {
+            console.log('UI sound error:', e);
+        }
     }
 
     togglePause() {
@@ -2941,6 +3055,9 @@ class VirtuosoTheory {
     }
 
     showResultsScreen(levelName, categoryName) {
+        // Play results fanfare
+        this.playUISound('results');
+
         // Calculate stats
         const accuracy = this.totalQuestions > 0
             ? Math.round((this.correctAnswers / this.totalQuestions) * 100)
