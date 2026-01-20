@@ -107,7 +107,12 @@ class InputManager {
         this.noteOnThreshold = 0.008;  // Slightly higher to reduce false triggers
         this.noteOffThreshold = 0.004;
         this.pitchConfidenceThreshold = 0.4;
-        
+
+        // Expected note range filtering (1 octave above and below expected notes)
+        this.expectedMidiMin = 0;   // Minimum MIDI note to accept
+        this.expectedMidiMax = 127; // Maximum MIDI note to accept
+        this.rangeFilterEnabled = true; // Enable range filtering
+
         this.init();
     }
     
@@ -303,6 +308,30 @@ class InputManager {
         }
     }
     
+    /**
+     * Set the acceptable MIDI note range based on expected notes
+     * Filters out notes more than 1 octave away from expected answer
+     */
+    setExpectedNoteRange(expectedNotes) {
+        if (!expectedNotes || expectedNotes.size === 0) {
+            // No expected notes - accept full range
+            this.expectedMidiMin = 0;
+            this.expectedMidiMax = 127;
+            return;
+        }
+
+        // Find min and max of expected notes
+        const notes = Array.from(expectedNotes);
+        const minNote = Math.min(...notes);
+        const maxNote = Math.max(...notes);
+
+        // Allow 1 octave (12 semitones) above and below
+        this.expectedMidiMin = Math.max(0, minNote - 12);
+        this.expectedMidiMax = Math.min(127, maxNote + 12);
+
+        console.log(`Note range filter: MIDI ${this.expectedMidiMin}-${this.expectedMidiMax}`);
+    }
+
     updateButtonStates() {
         const methods = this.isMobile ? ['virtual', 'microphone'] : ['virtual', 'midi', 'microphone'];
         
@@ -716,24 +745,30 @@ class InputManager {
 
                     const roundedMidiNote = Math.round(midiNote);
 
-                    // FAST TRIGGER: On attack detection with high confidence
-                    const shouldTriggerFast = this.attackDetected && confidence > 0.80;
-                    const shouldTriggerStable = this.noteStabilityCounter >= this.noteStabilityThreshold;
+                    // Range filter: only accept notes within expected range (±1 octave)
+                    const inRange = !this.rangeFilterEnabled ||
+                        (roundedMidiNote >= this.expectedMidiMin && roundedMidiNote <= this.expectedMidiMax);
 
-                    if ((shouldTriggerFast || shouldTriggerStable) && this.lastStableNote !== roundedMidiNote) {
-                        // Release previous note
-                        if (this.lastStableNote !== null) {
-                            this.game.handleNoteRelease(this.lastStableNote);
+                    if (inRange) {
+                        // FAST TRIGGER: On attack detection with high confidence
+                        const shouldTriggerFast = this.attackDetected && confidence > 0.80;
+                        const shouldTriggerStable = this.noteStabilityCounter >= this.noteStabilityThreshold;
+
+                        if ((shouldTriggerFast || shouldTriggerStable) && this.lastStableNote !== roundedMidiNote) {
+                            // Release previous note
+                            if (this.lastStableNote !== null) {
+                                this.game.handleNoteRelease(this.lastStableNote);
+                            }
+
+                            // Calculate velocity from attack strength (piano dynamics)
+                            const velocity = Math.min(120, Math.max(40, Math.floor(40 + (rms * 600))));
+                            this.game.handleNotePress(roundedMidiNote, velocity);
+                            this.lastStableNote = roundedMidiNote;
+                            this.attackDetected = false; // Reset attack flag
+
+                            const noteName = this.game.midiToNote(roundedMidiNote);
+                            this.updateStatus(`Note: ${noteName}`);
                         }
-
-                        // Calculate velocity from attack strength (piano dynamics)
-                        const velocity = Math.min(120, Math.max(40, Math.floor(40 + (rms * 600))));
-                        this.game.handleNotePress(roundedMidiNote, velocity);
-                        this.lastStableNote = roundedMidiNote;
-                        this.attackDetected = false; // Reset attack flag
-
-                        const noteName = this.game.midiToNote(roundedMidiNote);
-                        this.updateStatus(`Note: ${noteName}`);
                     }
 
                     this.lastDetectedNote = midiNote;
@@ -2605,6 +2640,11 @@ class VirtuosoTheory {
                 this.expectedNotes.add(midi);
             });
             this.displayNotesOnStaff(this.currentQuestion.notes);
+        }
+
+        // Update microphone input range filter to ignore notes far from expected answer
+        if (this.inputManager) {
+            this.inputManager.setExpectedNoteRange(this.expectedNotes);
         }
     }
 
