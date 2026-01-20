@@ -2490,7 +2490,13 @@ class VirtuosoTheory {
             this.closeLevelModal();
             this.openCategoryModal();
         });
-        
+
+        // Category modal close button
+        const categoryBackBtn = document.getElementById('categoryBackBtn');
+        categoryBackBtn.addEventListener('click', () => {
+            this.closeCategoryModal();
+        });
+
         document.getElementById('categoryModal').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) {
                 this.closeCategoryModal();
