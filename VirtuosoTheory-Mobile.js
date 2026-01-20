@@ -86,19 +86,24 @@ class InputManager {
         this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         this.isIPad = /iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         
-        // Pitch detection parameters - CALIBRATED VALUES
+        // Pitch detection parameters - OPTIMIZED FOR LIVE PIANO
         this.pitchBuffer = [];
-        this.pitchBufferSize = 5;
+        this.pitchBufferSize = 3; // Reduced from 5 for lower latency
         this.noteStabilityCounter = 0;
-        this.noteStabilityThreshold = 2; // Lowered for faster response
+        this.noteStabilityThreshold = 1; // Reduced from 2 for faster response
         this.lastStableNote = null;
         this.lastDetectedNote = null;
         this.silenceCounter = 0;
-        
-        // Volume thresholds - CRITICAL FOR DETECTION
-        this.noteOnThreshold = 0.005;  // Very low for sensitivity
-        this.noteOffThreshold = 0.003;
-        this.pitchConfidenceThreshold = 0.3; // Lower for better detection
+
+        // Onset detection for piano attacks
+        this.lastRMS = 0;
+        this.attackDetected = false;
+        this.attackThreshold = 3.0; // RMS must increase 3x for attack
+
+        // Volume thresholds - TUNED FOR ACOUSTIC PIANO
+        this.noteOnThreshold = 0.008;  // Slightly higher to reduce false triggers
+        this.noteOffThreshold = 0.004;
+        this.pitchConfidenceThreshold = 0.4;
         
         this.init();
     }
@@ -257,11 +262,11 @@ class InputManager {
                 }
             }
             
+            const attackIndicator = this.attackDetected ? ' [ATTACK]' : '';
             this.debugMonitor.innerHTML = `
-                <div>Level: ${(rms * 1000).toFixed(2)} | SNR: ${snr.toFixed(1)}</div>
-                <div>Pitch: ${pitch ? pitch.toFixed(1) + ' Hz' : '--'}</div>
-                <div>Conf: ${confidence ? (confidence * 100).toFixed(0) + '%' : '--'}</div>
-                <div>Note: ${pitch ? this.game.midiToNote(this.frequencyToMidi(pitch)) : '--'}</div>
+                <div>Level: ${(rms * 1000).toFixed(1)} | SNR: ${snr.toFixed(1)}${attackIndicator}</div>
+                <div>Pitch: ${pitch ? pitch.toFixed(1) + ' Hz' : '--'} | Conf: ${confidence ? (confidence * 100).toFixed(0) + '%' : '--'}</div>
+                <div>Note: ${pitch ? this.game.midiToNote(this.frequencyToMidi(pitch)) : '--'} | Stable: ${this.lastStableNote ? this.game.midiToNote(this.lastStableNote) : '--'}</div>
                 <div style="color: ${status === 'Piano range' ? '#00ff88' : '#ff6666'}">Status: ${status}</div>
             `;
         } else if (this.debugMonitor) {
@@ -511,38 +516,46 @@ class InputManager {
             this.harmonicAnalyser.fftSize = 16384; // Very high resolution
             this.harmonicAnalyser.smoothingTimeConstant = 0.3;
             
-            // Multi-stage filtering for piano isolation
-            // 1. Remove very low frequencies (rumble, AC hum)
+            // Optimized filtering for acoustic piano
+            // 1. High-pass to remove rumble (below piano range, A0 = 27.5Hz)
             this.rumbleFilter = this.audioContext.createBiquadFilter();
             this.rumbleFilter.type = 'highpass';
-            this.rumbleFilter.frequency.value = 70; // Below lowest piano note
-            this.rumbleFilter.Q.value = 1;
-            
-            // 2. Notch filter for 60Hz electrical hum
-            this.humFilter = this.audioContext.createBiquadFilter();
-            this.humFilter.type = 'notch';
-            this.humFilter.frequency.value = 60;
-            this.humFilter.Q.value = 30;
-            
-            // 3. Piano range bandpass
-            this.pianoRangeFilter = this.audioContext.createBiquadFilter();
-            this.pianoRangeFilter.type = 'bandpass';
-            this.pianoRangeFilter.frequency.value = 500; // Center frequency
-            this.pianoRangeFilter.Q.value = 0.5; // Wide band
-            
-            // 4. Remove very high frequencies (above piano range)
+            this.rumbleFilter.frequency.value = 25; // Just below A0
+            this.rumbleFilter.Q.value = 0.7;
+
+            // 2. Notch filter for 60Hz electrical hum (and 50Hz for EU)
+            this.humFilter60 = this.audioContext.createBiquadFilter();
+            this.humFilter60.type = 'notch';
+            this.humFilter60.frequency.value = 60;
+            this.humFilter60.Q.value = 30;
+
+            this.humFilter50 = this.audioContext.createBiquadFilter();
+            this.humFilter50.type = 'notch';
+            this.humFilter50.frequency.value = 50;
+            this.humFilter50.Q.value = 30;
+
+            // 3. Low-pass to remove frequencies above piano range
+            // C8 = 4186Hz, but we keep harmonics up to ~8kHz for timbre detection
             this.highCutFilter = this.audioContext.createBiquadFilter();
             this.highCutFilter.type = 'lowpass';
-            this.highCutFilter.frequency.value = 4200; // Highest piano note ~4186 Hz
+            this.highCutFilter.frequency.value = 8000;
             this.highCutFilter.Q.value = 0.7;
-            
-            // Connect the audio chain
+
+            // 4. Gentle presence boost for piano attack clarity (2-4kHz)
+            this.presenceFilter = this.audioContext.createBiquadFilter();
+            this.presenceFilter.type = 'peaking';
+            this.presenceFilter.frequency.value = 3000;
+            this.presenceFilter.Q.value = 1;
+            this.presenceFilter.gain.value = 2; // Subtle 2dB boost
+
+            // Connect the audio chain - NO bandpass that kills low notes!
             this.microphone.connect(this.rumbleFilter);
-            this.rumbleFilter.connect(this.humFilter);
-            this.humFilter.connect(this.pianoRangeFilter);
-            this.pianoRangeFilter.connect(this.highCutFilter);
-            this.highCutFilter.connect(this.analyser);
-            this.highCutFilter.connect(this.harmonicAnalyser);
+            this.rumbleFilter.connect(this.humFilter60);
+            this.humFilter60.connect(this.humFilter50);
+            this.humFilter50.connect(this.highCutFilter);
+            this.highCutFilter.connect(this.presenceFilter);
+            this.presenceFilter.connect(this.analyser);
+            this.presenceFilter.connect(this.harmonicAnalyser);
             
             // Initialize piano-specific detection parameters
             this.initializePianoDetection();
@@ -553,6 +566,8 @@ class InputManager {
             this.lastStableNote = null;
             this.lastDetectedNote = null;
             this.silenceCounter = 0;
+            this.lastRMS = 0;
+            this.attackDetected = false;
             
             // Mark as listening
             this.isListening = true;
@@ -624,16 +639,27 @@ class InputManager {
         
         // Calculate RMS for volume detection
         const rms = Math.sqrt(buffer.reduce((sum, val) => sum + val * val, 0) / bufferLength);
-        
+
+        // ONSET DETECTION - detect piano attack
+        const rmsRatio = this.lastRMS > 0.001 ? rms / this.lastRMS : 1;
+        const isAttack = rmsRatio > this.attackThreshold && rms > 0.01;
+        if (isAttack) {
+            this.attackDetected = true;
+            this.pitchBuffer = []; // Clear buffer on new attack for fresh detection
+            this.noteStabilityCounter = 0;
+        }
+        this.lastRMS = rms * 0.3 + this.lastRMS * 0.7; // Smoothed RMS tracking
+
         // Update noise floor estimate (adaptive noise gate)
         this.updateNoiseFloor(rms);
         const noiseFloor = this.getNoiseFloor();
-        
+
         let detectedPitch = null;
         let confidence = 0;
-        
-        // LOWERED THRESHOLDS - only need signal slightly above noise
-        if (rms > noiseFloor * 1.2 && rms > 0.002) { // Was 1.5x and 0.003
+
+        // Signal detection with adaptive threshold
+        const signalThreshold = Math.max(noiseFloor * 2, 0.005);
+        if (rms > signalThreshold) {
             this.silenceCounter = 0;
             
             // Get pitch using autocorrelation
@@ -668,36 +694,41 @@ class InputManager {
                         } else {
                             this.noteStabilityCounter = 0;
                         }
-                        
-                        // Trigger note if stable
-                        if (this.noteStabilityCounter >= this.noteStabilityThreshold) {
-                            const roundedMidiNote = Math.round(midiNote);
-                            
-                            if (this.lastStableNote !== roundedMidiNote) {
-                                // Release previous note
-                                if (this.lastStableNote !== null) {
-                                    this.game.handleNoteRelease(this.lastStableNote);
-                                }
-                                
-                                // Trigger new note
-                                const velocity = Math.min(127, Math.floor(40 + (rms * 400)));
-                                this.game.handleNotePress(roundedMidiNote, velocity);
-                                this.lastStableNote = roundedMidiNote;
-                                
-                                const noteName = this.game.midiToNote(roundedMidiNote);
-                                this.updateStatus(`Note: ${noteName}`);
+
+                        const roundedMidiNote = Math.round(midiNote);
+
+                        // FAST TRIGGER: On attack detection with good confidence, trigger immediately
+                        const shouldTriggerFast = this.attackDetected && confidence > 0.5;
+                        const shouldTriggerStable = this.noteStabilityCounter >= this.noteStabilityThreshold;
+
+                        if ((shouldTriggerFast || shouldTriggerStable) && this.lastStableNote !== roundedMidiNote) {
+                            // Release previous note
+                            if (this.lastStableNote !== null) {
+                                this.game.handleNoteRelease(this.lastStableNote);
                             }
+
+                            // Calculate velocity from attack strength (piano dynamics)
+                            // Map RMS 0.01-0.15 to velocity 40-120
+                            const velocity = Math.min(120, Math.max(40, Math.floor(40 + (rms * 600))));
+                            this.game.handleNotePress(roundedMidiNote, velocity);
+                            this.lastStableNote = roundedMidiNote;
+                            this.attackDetected = false; // Reset attack flag
+
+                            const noteName = this.game.midiToNote(roundedMidiNote);
+                            this.updateStatus(`Note: ${noteName}`);
                         }
-                        
+
                         this.lastDetectedNote = midiNote;
                     }
                 }
             }
-            
+
         } else {
             this.silenceCounter++;
-            
-            if (this.silenceCounter > 5 && this.lastStableNote !== null) {
+            this.attackDetected = false;
+
+            // Faster note release (reduced from 5 to 3 frames)
+            if (this.silenceCounter > 3 && this.lastStableNote !== null) {
                 this.game.handleNoteRelease(this.lastStableNote);
                 this.lastStableNote = null;
                 this.lastDetectedNote = null;
