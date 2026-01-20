@@ -1131,6 +1131,12 @@ class VirtuosoTheory {
         this.expectedNotes = new Set();
         this.playedNotes = new Set();
         this.questionAnswered = false;
+
+        // Game statistics tracking
+        this.correctAnswers = 0;
+        this.incorrectAnswers = 0;
+        this.totalQuestions = 0;
+        this.gameStartTime = null;
         this.categories = [];
         this.gameSettings = {};
         this.gameInitialized = false;
@@ -1711,12 +1717,27 @@ class VirtuosoTheory {
             }
         }
         
-        // Smaller keys for mobile
+        // Piano key dimensions - sized for device
         const whiteKeyCount = allNotes.filter(n => n.type === 'white').length;
-        const whiteKeyWidth = this.isMobile ? 30 : 45;
-        const whiteKeyHeight = this.isMobile ? 85 : 198;
-        const blackKeyWidth = whiteKeyWidth * 0.6;
-        const blackKeyHeight = whiteKeyHeight * 0.65;
+
+        let whiteKeyWidth, whiteKeyHeight;
+        if (this.isMobile && !this.isIPad) {
+            // Phone: compact keys
+            whiteKeyWidth = 30;
+            whiteKeyHeight = 85;
+        } else if (this.isIPad) {
+            // iPad: medium keys with proper proportions
+            whiteKeyWidth = 38;
+            whiteKeyHeight = 140;
+        } else {
+            // Desktop: full-size keys
+            whiteKeyWidth = 45;
+            whiteKeyHeight = 198;
+        }
+
+        // Realistic piano proportions: black keys are ~50% width, ~62% height of white keys
+        const blackKeyWidth = whiteKeyWidth * 0.50;
+        const blackKeyHeight = whiteKeyHeight * 0.62;
         
         const totalPianoWidth = whiteKeyCount * whiteKeyWidth;
         piano.style.width = totalPianoWidth + 'px';
@@ -2555,10 +2576,17 @@ class VirtuosoTheory {
 
         this.score = 0;
         this.streak = 0;
+        this.maxStreak = 0;
         this.questionIndex = 0;
         this.timeRemaining = this.currentLevel.timeLimit;
         this.gameActive = true;
         this.isPaused = false;
+
+        // Reset game statistics
+        this.correctAnswers = 0;
+        this.incorrectAnswers = 0;
+        this.totalQuestions = 0;
+        this.gameStartTime = Date.now();
 
         document.getElementById('score').textContent = this.score;
         document.getElementById('streak').textContent = this.streak;
@@ -2776,6 +2804,10 @@ class VirtuosoTheory {
         // Prevent duplicate scoring for the same question
         this.questionAnswered = true;
 
+        // Track statistics
+        this.correctAnswers++;
+        this.totalQuestions++;
+
         // Increment streak first (streak 1 = first correct answer)
         this.streak++;
         this.maxStreak = Math.max(this.maxStreak, this.streak);
@@ -2824,6 +2856,10 @@ class VirtuosoTheory {
     }
 
     handleIncorrectAnswer() {
+        // Track statistics
+        this.incorrectAnswers++;
+        this.totalQuestions++;
+
         const lostStreak = this.streak;
         this.streak = 0;
         document.getElementById('streak').textContent = this.streak;
@@ -2880,26 +2916,251 @@ class VirtuosoTheory {
     endGame() {
         this.gameActive = false;
         clearInterval(this.timer);
-        
+
         const startBtn = document.getElementById('startBtn');
         const pauseBtn = document.getElementById('pauseBtn');
-        
+
         startBtn.style.display = 'block';
         startBtn.textContent = 'Select Level';
         pauseBtn.style.display = 'none';
         pauseBtn.disabled = true;
-        
+
+        const levelName = this.currentLevel?.name || 'Unknown';
+        const categoryName = this.currentCategory?.name || 'Unknown';
+
         this.currentLevel = null;
         this.currentCategory = null;
         document.getElementById('levelName').textContent = 'None';
         document.getElementById('timer').textContent = '--';
-        
+
         const existingNotes = this.staff.svg.querySelectorAll('.staff-note, .staff-note-glow, .ledger-line');
         existingNotes.forEach(el => el.remove());
 
-        // Show final score with max streak info
-        const streakText = this.maxStreak >= 5 ? ` | Best: ${this.maxStreak}x` : '';
-        this.showFeedback(`Final Score: ${this.score}${streakText}`, true);
+        // Show premium results screen
+        this.showResultsScreen(levelName, categoryName);
+    }
+
+    showResultsScreen(levelName, categoryName) {
+        // Calculate stats
+        const accuracy = this.totalQuestions > 0
+            ? Math.round((this.correctAnswers / this.totalQuestions) * 100)
+            : 0;
+        const timePlayed = this.gameStartTime
+            ? Math.round((Date.now() - this.gameStartTime) / 1000)
+            : 0;
+
+        // Determine performance rating
+        let rating, ratingColor, ratingGlow;
+        if (accuracy >= 95) {
+            rating = 'LEGENDARY';
+            ratingColor = 'linear-gradient(135deg, #ffd700, #ff8c00)';
+            ratingGlow = 'rgba(255, 215, 0, 0.8)';
+        } else if (accuracy >= 85) {
+            rating = 'EXCELLENT';
+            ratingColor = 'linear-gradient(135deg, #00ff88, #00ffff)';
+            ratingGlow = 'rgba(0, 255, 136, 0.8)';
+        } else if (accuracy >= 70) {
+            rating = 'GREAT';
+            ratingColor = 'linear-gradient(135deg, #00ffff, #0088ff)';
+            ratingGlow = 'rgba(0, 255, 255, 0.8)';
+        } else if (accuracy >= 50) {
+            rating = 'GOOD';
+            ratingColor = 'linear-gradient(135deg, #88ff00, #ffff00)';
+            ratingGlow = 'rgba(136, 255, 0, 0.8)';
+        } else {
+            rating = 'KEEP PRACTICING';
+            ratingColor = 'linear-gradient(135deg, #ff00ff, #ff0088)';
+            ratingGlow = 'rgba(255, 0, 255, 0.8)';
+        }
+
+        // Create results overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'resultsOverlay';
+        overlay.innerHTML = `
+            <style>
+                #resultsOverlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(180deg, rgba(5, 5, 20, 0.98) 0%, rgba(20, 5, 30, 0.98) 100%);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    font-family: 'Orbitron', Arial, sans-serif;
+                    opacity: 0;
+                    animation: fadeInResults 0.5s ease forwards;
+                }
+                @keyframes fadeInResults {
+                    to { opacity: 1; }
+                }
+                .results-container {
+                    text-align: center;
+                    max-width: 500px;
+                    width: 90%;
+                    padding: 30px;
+                }
+                .results-header {
+                    font-size: clamp(14px, 3vw, 18px);
+                    color: rgba(255, 255, 255, 0.5);
+                    text-transform: uppercase;
+                    letter-spacing: 4px;
+                    margin-bottom: 10px;
+                    opacity: 0;
+                    animation: slideUp 0.5s ease 0.2s forwards;
+                }
+                .results-title {
+                    font-size: clamp(28px, 6vw, 42px);
+                    font-weight: bold;
+                    background: ${ratingColor};
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    filter: drop-shadow(0 0 20px ${ratingGlow});
+                    margin-bottom: 30px;
+                    opacity: 0;
+                    animation: scaleIn 0.6s ease 0.4s forwards;
+                }
+                @keyframes slideUp {
+                    from { transform: translateY(20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                @keyframes scaleIn {
+                    from { transform: scale(0.5); opacity: 0; }
+                    to { transform: scale(1); opacity: 1; }
+                }
+                .results-score {
+                    font-size: clamp(60px, 15vw, 100px);
+                    font-weight: bold;
+                    color: #00ffff;
+                    text-shadow:
+                        0 0 20px rgba(0, 255, 255, 0.8),
+                        0 0 40px rgba(0, 255, 255, 0.4);
+                    margin-bottom: 30px;
+                    opacity: 0;
+                    animation: countUp 0.8s ease 0.6s forwards;
+                }
+                @keyframes countUp {
+                    from { transform: scale(1.5); opacity: 0; }
+                    to { transform: scale(1); opacity: 1; }
+                }
+                .results-stats {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 15px;
+                    margin-bottom: 30px;
+                }
+                .stat-box {
+                    background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.05) 100%);
+                    border: 1px solid rgba(0, 255, 255, 0.3);
+                    border-radius: 12px;
+                    padding: 15px 10px;
+                    opacity: 0;
+                    animation: slideUp 0.5s ease forwards;
+                }
+                .stat-box:nth-child(1) { animation-delay: 0.8s; }
+                .stat-box:nth-child(2) { animation-delay: 0.9s; }
+                .stat-box:nth-child(3) { animation-delay: 1.0s; }
+                .stat-box:nth-child(4) { animation-delay: 1.1s; }
+                .stat-value {
+                    font-size: clamp(24px, 5vw, 32px);
+                    font-weight: bold;
+                    color: #fff;
+                    margin-bottom: 5px;
+                }
+                .stat-value.correct { color: #00ff88; }
+                .stat-value.incorrect { color: #ff4466; }
+                .stat-value.streak { color: #ffcc00; }
+                .stat-value.accuracy { color: #00ffff; }
+                .stat-label {
+                    font-size: clamp(10px, 2.5vw, 12px);
+                    color: rgba(255, 255, 255, 0.6);
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                .results-level {
+                    font-size: clamp(12px, 2.5vw, 14px);
+                    color: rgba(255, 255, 255, 0.4);
+                    margin-bottom: 25px;
+                    opacity: 0;
+                    animation: slideUp 0.5s ease 1.2s forwards;
+                }
+                .results-button {
+                    padding: 15px 40px;
+                    font-size: clamp(14px, 3vw, 18px);
+                    font-family: 'Orbitron', Arial, sans-serif;
+                    font-weight: bold;
+                    color: #000;
+                    background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%);
+                    border: none;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    box-shadow:
+                        0 0 30px rgba(0, 255, 255, 0.5),
+                        0 5px 20px rgba(0, 0, 0, 0.3);
+                    transition: all 0.3s ease;
+                    opacity: 0;
+                    animation: slideUp 0.5s ease 1.4s forwards;
+                    -webkit-tap-highlight-color: transparent;
+                }
+                .results-button:hover {
+                    transform: scale(1.05);
+                    box-shadow:
+                        0 0 50px rgba(0, 255, 255, 0.7),
+                        0 5px 30px rgba(0, 0, 0, 0.4);
+                }
+                .results-button:active {
+                    transform: scale(0.98);
+                }
+                .decorative-line {
+                    width: 60%;
+                    height: 2px;
+                    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
+                    margin: 20px auto;
+                    opacity: 0;
+                    animation: slideUp 0.5s ease 0.7s forwards;
+                }
+            </style>
+            <div class="results-container">
+                <div class="results-header">Game Complete</div>
+                <div class="results-title">${rating}</div>
+                <div class="results-score">${this.score.toLocaleString()}</div>
+                <div class="decorative-line"></div>
+                <div class="results-stats">
+                    <div class="stat-box">
+                        <div class="stat-value correct">${this.correctAnswers}</div>
+                        <div class="stat-label">Correct</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value incorrect">${this.incorrectAnswers}</div>
+                        <div class="stat-label">Missed</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value streak">${this.maxStreak}x</div>
+                        <div class="stat-label">Best Streak</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value accuracy">${accuracy}%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+                <div class="results-level">${categoryName} • ${levelName}</div>
+                <button class="results-button" id="resultsCloseBtn">Continue</button>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Close button handler
+        document.getElementById('resultsCloseBtn').addEventListener('click', () => {
+            overlay.style.transition = 'opacity 0.3s ease';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 300);
+        });
     }
 
     drawGrid() {
