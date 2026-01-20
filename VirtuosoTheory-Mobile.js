@@ -2054,8 +2054,8 @@ class VirtuosoTheory {
         let y, staff, needsLedger;
         
         if (midi === 60) {
-            // Middle C
-            y = (this.staff.trebleY + (this.staff.lineSpacing * 2) + this.staff.bassY - (this.staff.lineSpacing * 2)) / 2;
+            // Middle C - one ledger line below treble staff (E4 is bottom line at +2)
+            y = this.staff.trebleY + (this.staff.lineSpacing * 3);
             staff = 'middle';
             needsLedger = true;
         } else if (midi > 60) {
