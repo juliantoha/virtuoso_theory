@@ -1353,8 +1353,66 @@ class VirtuosoTheory {
 
     updateLoadingProgress(percent) {
         const progress = document.getElementById('loadingProgress');
+        const percentText = document.getElementById('loadingPercent');
+        const tipText = document.getElementById('loadingTip');
+
         if (progress) {
             progress.style.width = percent + '%';
+        }
+        if (percentText) {
+            percentText.textContent = Math.round(percent) + '%';
+        }
+
+        // Update loading tip based on progress
+        if (tipText) {
+            const tips = [
+                { threshold: 10, text: 'Initializing audio engine...' },
+                { threshold: 25, text: 'Loading instrument samples...' },
+                { threshold: 40, text: 'Preparing piano sounds...' },
+                { threshold: 55, text: 'Setting up virtual keyboard...' },
+                { threshold: 70, text: 'Drawing music staff...' },
+                { threshold: 85, text: 'Configuring input methods...' },
+                { threshold: 95, text: 'Almost ready...' },
+                { threshold: 100, text: 'Let\'s make music!' }
+            ];
+            for (let i = tips.length - 1; i >= 0; i--) {
+                if (percent >= tips[i].threshold) {
+                    if (tipText.textContent !== tips[i].text) {
+                        tipText.style.opacity = '0';
+                        setTimeout(() => {
+                            tipText.textContent = tips[i].text;
+                            tipText.style.opacity = '1';
+                        }, 150);
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Initialize loading particles on first call
+        if (!this.loadingParticlesInit) {
+            this.initLoadingParticles();
+            this.loadingParticlesInit = true;
+        }
+    }
+
+    initLoadingParticles() {
+        const container = document.getElementById('loadingParticles');
+        if (!container) return;
+
+        const particleCount = 20;
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'loading-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 4 + 's';
+            particle.style.animationDuration = (3 + Math.random() * 3) + 's';
+
+            const hue = Math.random() > 0.5 ? '180' : '300'; // Cyan or magenta
+            particle.style.background = `hsl(${hue}, 100%, 60%)`;
+            particle.style.boxShadow = `0 0 10px hsl(${hue}, 100%, 60%)`;
+
+            container.appendChild(particle);
         }
     }
 
@@ -3028,17 +3086,36 @@ class VirtuosoTheory {
     }
 
     startTimer() {
+        const totalTime = this.selectedDuration || this.currentLevel.timeLimit || 60;
+        const circumference = 62.83; // 2 * PI * 10 (radius)
+        const timerRing = document.getElementById('timerRing');
+
         this.timer = setInterval(() => {
             if (!this.isPaused) {
                 this.timeRemaining--;
                 document.getElementById('timer').textContent = this.timeRemaining;
-                
+
+                // Update timer ring progress
+                if (timerRing) {
+                    const progress = this.timeRemaining / totalTime;
+                    timerRing.style.strokeDashoffset = circumference * (1 - progress);
+
+                    // Change ring color based on time remaining
+                    if (this.timeRemaining <= 10) {
+                        timerRing.style.stroke = '#ff0066';
+                    } else if (this.timeRemaining <= 30) {
+                        timerRing.style.stroke = '#ffaa00';
+                    } else {
+                        timerRing.style.stroke = '#00ffff';
+                    }
+                }
+
                 if (this.timeRemaining <= 10) {
                     document.getElementById('timer').classList.add('timer-warning');
                 } else {
                     document.getElementById('timer').classList.remove('timer-warning');
                 }
-                
+
                 if (this.timeRemaining <= 0) {
                     this.endGame();
                 }
@@ -3124,8 +3201,30 @@ class VirtuosoTheory {
         }
 
         this.score += points;
-        document.getElementById('score').textContent = this.score;
-        document.getElementById('streak').textContent = this.streak;
+        const scoreEl = document.getElementById('score');
+        const scoreBox = document.getElementById('scoreBox');
+        const streakEl = document.getElementById('streak');
+        const streakBox = document.getElementById('streakBox');
+
+        scoreEl.textContent = this.score;
+        streakEl.textContent = this.streak;
+
+        // Trigger score pop animation
+        scoreEl.classList.add('value-change');
+        scoreBox.classList.add('score-pop');
+        setTimeout(() => {
+            scoreEl.classList.remove('value-change');
+            scoreBox.classList.remove('score-pop');
+        }, 300);
+
+        // Update streak box visual state
+        if (this.streak >= 5) {
+            streakBox.classList.add('streak-fire');
+            streakBox.classList.remove('streak-active');
+        } else if (this.streak >= 2) {
+            streakBox.classList.add('streak-active');
+            streakBox.classList.remove('streak-fire');
+        }
 
         // Update streak multiplier indicator
         this.updateStreakIndicator(multiplier, this.streak);
@@ -3152,6 +3251,10 @@ class VirtuosoTheory {
         const lostStreak = this.streak;
         this.streak = 0;
         document.getElementById('streak').textContent = this.streak;
+
+        // Reset streak box styling
+        const streakBox = document.getElementById('streakBox');
+        streakBox.classList.remove('streak-active', 'streak-fire');
 
         // Hide streak indicator
         this.hideStreakIndicator();
@@ -3559,31 +3662,145 @@ class VirtuosoTheory {
     drawGrid() {
         const canvas = document.getElementById('gridCanvas');
         const ctx = canvas.getContext('2d');
-        
+
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
-        ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
-        ctx.lineWidth = 1;
-        
-        const step = this.isMobile ? 30 : 50;
-        
-        for (let x = 0; x < canvas.width; x += step) {
+
+        const width = canvas.width;
+        const height = canvas.height;
+        const horizonY = height * 0.65;
+        const vanishingPointX = width / 2;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw horizon line glow (multiple layers)
+        for (let i = 30; i > 0; i--) {
+            const alpha = 0.008 * (31 - i);
+            const lineWidth = i * 2;
+            ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+            ctx.lineWidth = lineWidth;
             ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvas.height);
+            ctx.moveTo(0, horizonY);
+            ctx.lineTo(width, horizonY);
             ctx.stroke();
         }
-        
-        const horizon = canvas.height * 0.4;
-        for (let y = horizon; y < canvas.height; y += step) {
-            const progress = (y - horizon) / (canvas.height - horizon);
-            ctx.globalAlpha = 0.1 * (1 - progress * 0.5);
+
+        // Main horizon line
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, horizonY);
+        ctx.lineTo(width, horizonY);
+        ctx.stroke();
+
+        // Horizontal perspective lines (below horizon)
+        for (let i = 1; i <= 8; i++) {
+            const progress = i / 8;
+            const y = horizonY + (height - horizonY) * (progress * progress);
+            const alpha = 0.08 * (1 - progress * 0.6);
+            ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
+            ctx.lineTo(width, y);
             ctx.stroke();
         }
+
+        // Vertical perspective lines (converging to vanishing point)
+        const lineSpacing = this.isMobile ? 80 : 100;
+        for (let i = -10; i <= 10; i++) {
+            if (i === 0) continue;
+            const startX = vanishingPointX + (i * lineSpacing * 0.3);
+            const endX = vanishingPointX + (i * lineSpacing * 3);
+            const alpha = 0.06 * (1 - Math.abs(i) * 0.05);
+            ctx.strokeStyle = `rgba(0, 255, 255, ${Math.max(0.02, alpha)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(startX, horizonY);
+            ctx.lineTo(endX, height);
+            ctx.stroke();
+        }
+
+        // Bottom gradient fade
+        const gradient = ctx.createLinearGradient(0, height - 150, 0, height);
+        gradient.addColorStop(0, 'rgba(0, 0, 34, 0)');
+        gradient.addColorStop(1, 'rgba(0, 0, 34, 0.8)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, height - 150, width, 150);
+
+        // Initialize floating particles if not already done
+        if (!this.particlesInitialized) {
+            this.initFloatingParticles();
+            this.particlesInitialized = true;
+        }
+    }
+
+    initFloatingParticles() {
+        const container = document.getElementById('particlesContainer');
+        if (!container) return;
+
+        const particleCount = this.isMobile ? 20 : 35;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const horizonY = height * 0.65;
+
+        for (let i = 0; i < particleCount; i++) {
+            this.createParticle(container, width, height, horizonY, i * 200);
+        }
+    }
+
+    createParticle(container, width, height, horizonY, delay) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+
+        const size = 2 + Math.random() * 4;
+        const startX = Math.random() * width;
+        const startY = horizonY + Math.random() * (height - horizonY);
+
+        particle.style.cssText = `
+            width: ${size}px;
+            height: ${size}px;
+            left: ${startX}px;
+            top: ${startY}px;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.8) 0%, rgba(0, 255, 255, 0) 70%);
+            box-shadow: 0 0 ${size * 2}px rgba(0, 255, 255, 0.5), 0 0 ${size * 4}px rgba(0, 255, 255, 0.3);
+            opacity: 0;
+        `;
+
+        container.appendChild(particle);
+
+        // Animate particle
+        const animateParticle = () => {
+            const newStartX = Math.random() * width;
+            const newStartY = horizonY + Math.random() * (height - horizonY);
+            const duration = 6000 + Math.random() * 6000;
+            const driftX = (Math.random() - 0.5) * 60;
+            const riseY = 40 + Math.random() * 80;
+
+            particle.style.transition = 'none';
+            particle.style.left = `${newStartX}px`;
+            particle.style.top = `${newStartY}px`;
+            particle.style.opacity = '0';
+
+            // Force reflow
+            particle.offsetHeight;
+
+            particle.style.transition = `all ${duration}ms ease-out`;
+            particle.style.left = `${newStartX + driftX}px`;
+            particle.style.top = `${newStartY - riseY}px`;
+            particle.style.opacity = '0.6';
+
+            // Fade out near the end
+            setTimeout(() => {
+                particle.style.opacity = '0';
+            }, duration * 0.7);
+
+            // Restart animation
+            setTimeout(animateParticle, duration);
+        };
+
+        setTimeout(animateParticle, delay);
     }
 }
 
