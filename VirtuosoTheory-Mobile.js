@@ -129,103 +129,20 @@ class InputManager {
     }
     
     createInputSelector() {
-        const container = document.createElement('div');
-        container.id = 'inputSelector';
-        container.innerHTML = `
-            <div style="color: #00ffff; font-weight: bold; font-size: 10px; margin-bottom: 8px; text-shadow: 0 0 8px rgba(0, 255, 255, 0.6); letter-spacing: 1.5px; text-align: center;">
-                INPUT
-            </div>
-        `;
-        
-        // Only show available methods on mobile
-        const methods = this.isMobile ?
-            [
-                { id: 'virtual', name: 'Touch', icon: GameIcons.get('touch', 14), description: 'Touch Piano' },
-                { id: 'microphone', name: 'Acoustic', icon: GameIcons.get('microphone', 14), description: 'Microphone' }
-            ] :
-            [
-                { id: 'virtual', name: 'Virtual', icon: GameIcons.get('piano', 14), description: 'Keyboard/Click' },
-                { id: 'midi', name: 'MIDI', icon: GameIcons.get('midi', 14), description: 'USB/MIDI' },
-                { id: 'microphone', name: 'Acoustic', icon: GameIcons.get('microphone', 14), description: 'Microphone' }
-            ];
-        
-        // Add CSS for disabled state
-        const style = document.createElement('style');
-        style.textContent = `
-            .input-method-btn:disabled {
-                background: rgba(30, 30, 30, 0.5) !important;
-                cursor: not-allowed !important;
-                opacity: 0.4 !important;
-            }
-            .input-method-btn:disabled:hover {
-                box-shadow: none !important;
-                transform: none !important;
-            }
-        `;
-        document.head.appendChild(style);
-        
-        methods.forEach(method => {
-            if (!this.availableMethods[method.id]) return;
-            
-            const button = document.createElement('button');
-            button.id = `input-${method.id}`;
-            button.className = 'input-method-btn';
-            
-            const leftContent = document.createElement('div');
-            leftContent.style.cssText = 'display: flex; align-items: center; gap: 6px;';
-            leftContent.innerHTML = `
-                <span style="display: flex; align-items: center; opacity: 0.9;">${method.icon}</span>
-                <span style="font-weight: 600;">${method.name}</span>
-            `;
+        // Input selection is now part of level selection flow
+        // This method only sets up internal state tracking, no visible UI panel
 
-            const rightContent = document.createElement('div');
-            rightContent.innerHTML = this.currentInputMethod === method.id ?
-                `<span style="color: #00ff88; display: flex; align-items: center;">${GameIcons.get('check', 12, '#00ff88')}</span>` : '';
-            
-            button.appendChild(leftContent);
-            button.appendChild(rightContent);
-            
-            button.addEventListener('click', () => this.switchInputMethod(method.id));
-            button.title = method.description;
-            
-            container.appendChild(button);
-        });
-        
-        // Add status indicator
+        // Create hidden status indicator for internal use
         this.statusIndicator = document.createElement('div');
         this.statusIndicator.id = 'inputStatus';
-        this.statusIndicator.style.cssText = `
-            margin-top: 6px;
-            padding: 4px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 3px;
-            font-size: 9px;
-            text-align: center;
-            color: #00ff88;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        `;
-        this.updateStatus(this.isMobile ? 'Touch Active' : 'Virtual Active');
-        container.appendChild(this.statusIndicator);
-        
-        // Add debug monitor (only shows when microphone is active)
+        this.statusIndicator.style.display = 'none';
+        document.body.appendChild(this.statusIndicator);
+
+        // Create hidden debug monitor for microphone debugging
         this.debugMonitor = document.createElement('div');
         this.debugMonitor.id = 'debugMonitor';
-        this.debugMonitor.style.cssText = `
-            display: none;
-            margin-top: 8px;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid #00ff88;
-            border-radius: 4px;
-            font-size: 10px;
-            font-family: monospace;
-            color: #00ff88;
-        `;
-        container.appendChild(this.debugMonitor);
-        
-        document.body.appendChild(container);
+        this.debugMonitor.style.display = 'none';
+        document.body.appendChild(this.debugMonitor);
     }
     
     updateStatus(message, isError = false) {
@@ -3663,6 +3580,7 @@ class VirtuosoTheory {
         const multiplierEl = document.getElementById('streakMultiplier');
         const barEl = document.getElementById('streakBar');
         const iconEl = document.getElementById('streakIcon');
+        const labelEl = document.querySelector('.streak-label');
 
         if (streak >= 2) {
             // Show indicator
@@ -3671,27 +3589,31 @@ class VirtuosoTheory {
             // Update multiplier text
             multiplierEl.textContent = `${multiplier.toFixed(1)}x`;
 
-            // Calculate bar fill (0-100% based on streak, max at 15)
+            // Calculate bar fill (0-100% based on streak, max at 15) - now uses height for vertical bar
             const barPercent = Math.min((streak / 15) * 100, 100);
-            barEl.style.width = `${barPercent}%`;
+            barEl.style.height = `${barPercent}%`;
 
-            // Update color tier and icon based on streak
+            // Update color tier, icon and label based on streak
             indicator.classList.remove('hot', 'fire', 'legendary');
             if (streak >= 10) {
                 indicator.classList.add('legendary');
                 iconEl.textContent = '👑';
                 iconEl.style.color = '#ffd700';
+                if (labelEl) labelEl.textContent = 'LEGENDARY';
             } else if (streak >= 5) {
                 indicator.classList.add('fire');
                 iconEl.textContent = '🔥';
                 iconEl.style.color = '#ff0066';
+                if (labelEl) labelEl.textContent = 'ON FIRE';
             } else if (streak >= 3) {
                 indicator.classList.add('hot');
                 iconEl.textContent = '🔥';
                 iconEl.style.color = '#ff8800';
+                if (labelEl) labelEl.textContent = 'HOT';
             } else {
                 iconEl.textContent = '⚡';
                 iconEl.style.color = '#00ffff';
+                if (labelEl) labelEl.textContent = 'STREAK';
             }
         } else {
             indicator.classList.remove('active');
@@ -3702,9 +3624,9 @@ class VirtuosoTheory {
         const indicator = document.getElementById('streakIndicator');
         indicator.classList.remove('active', 'hot', 'fire', 'legendary');
 
-        // Reset bar
+        // Reset bar (now uses height for vertical bar)
         const barEl = document.getElementById('streakBar');
-        barEl.style.width = '0%';
+        barEl.style.height = '0%';
     }
 
     triggerScreenShake() {
