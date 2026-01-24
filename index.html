@@ -651,292 +651,289 @@
             100% { background: transparent; }
         }
 
-        /* Premium Streak Multiplier Indicator */
+        /* ============================================
+           PREMIUM VERTICAL STREAK BAR
+           Full-height right-side power meter
+           ============================================ */
         .streak-indicator {
             position: fixed;
-            right: 15px;
+            right: 0;
             top: 50%;
             transform: translateY(-50%);
-            background: linear-gradient(135deg, rgba(0, 30, 50, 0.85) 0%, rgba(20, 0, 40, 0.9) 100%);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 2px solid rgba(0, 255, 255, 0.25);
-            border-radius: 16px;
-            padding: 18px 16px 14px;
-            text-align: center;
+            height: 70vh;
+            width: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 8px;
             z-index: 200;
             opacity: 0;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            min-width: 90px;
-            box-shadow:
-                0 0 30px rgba(0, 255, 255, 0.15),
-                inset 0 0 30px rgba(0, 255, 255, 0.05),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-        }
-
-        /* Inner glow effect */
-        .streak-indicator::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 80%;
-            height: 80%;
-            transform: translate(-50%, -50%);
-            background: radial-gradient(ellipse at center, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
             pointer-events: none;
-            transition: all 0.3s ease;
-        }
-
-        /* Corner accents */
-        .streak-indicator::after {
-            content: '';
-            position: absolute;
-            top: 6px;
-            left: 6px;
-            right: 6px;
-            bottom: 6px;
-            border: 1px solid transparent;
-            border-radius: 12px;
-            pointer-events: none;
-            background:
-                linear-gradient(135deg, rgba(0, 255, 255, 0.3) 0%, transparent 30%) top left,
-                linear-gradient(225deg, rgba(0, 255, 255, 0.3) 0%, transparent 30%) top right,
-                linear-gradient(315deg, rgba(0, 255, 255, 0.3) 0%, transparent 30%) bottom right,
-                linear-gradient(45deg, rgba(0, 255, 255, 0.3) 0%, transparent 30%) bottom left;
-            background-size: 20px 20px;
-            background-repeat: no-repeat;
-            transition: all 0.3s ease;
+            transition: opacity 0.4s ease, transform 0.4s ease;
         }
 
         .streak-indicator.active {
             opacity: 1;
-            animation: streakEntrance 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: streakSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        @keyframes streakEntrance {
-            0% { transform: translateY(-50%) scale(0.8); opacity: 0; }
-            100% { transform: translateY(-50%) scale(1); opacity: 1; }
+        @keyframes streakSlideIn {
+            0% { transform: translateY(-50%) translateX(60px); opacity: 0; }
+            100% { transform: translateY(-50%) translateX(0); opacity: 1; }
         }
 
-        .streak-indicator.hot {
-            border-color: rgba(255, 136, 0, 0.6);
-            box-shadow:
-                0 0 40px rgba(255, 136, 0, 0.3),
-                0 0 80px rgba(255, 136, 0, 0.15),
-                inset 0 0 40px rgba(255, 136, 0, 0.1);
-        }
-        .streak-indicator.hot::before {
-            background: radial-gradient(ellipse at center, rgba(255, 136, 0, 0.15) 0%, transparent 70%);
-        }
-        .streak-indicator.hot::after {
-            background:
-                linear-gradient(135deg, rgba(255, 136, 0, 0.4) 0%, transparent 30%) top left,
-                linear-gradient(225deg, rgba(255, 136, 0, 0.4) 0%, transparent 30%) top right,
-                linear-gradient(315deg, rgba(255, 136, 0, 0.4) 0%, transparent 30%) bottom right,
-                linear-gradient(45deg, rgba(255, 136, 0, 0.4) 0%, transparent 30%) bottom left;
-            background-size: 20px 20px;
-            background-repeat: no-repeat;
-        }
-
-        .streak-indicator.fire {
-            border-color: rgba(255, 0, 102, 0.7);
-            box-shadow:
-                0 0 50px rgba(255, 0, 102, 0.4),
-                0 0 100px rgba(255, 0, 102, 0.2),
-                inset 0 0 50px rgba(255, 0, 102, 0.15);
-            animation: firePulse 0.5s ease-in-out infinite;
-        }
-        .streak-indicator.fire::before {
-            background: radial-gradient(ellipse at center, rgba(255, 0, 102, 0.2) 0%, transparent 70%);
-            animation: innerGlowPulse 0.5s ease-in-out infinite;
-        }
-        .streak-indicator.fire::after {
-            background:
-                linear-gradient(135deg, rgba(255, 0, 102, 0.5) 0%, transparent 30%) top left,
-                linear-gradient(225deg, rgba(255, 0, 102, 0.5) 0%, transparent 30%) top right,
-                linear-gradient(315deg, rgba(255, 0, 102, 0.5) 0%, transparent 30%) bottom right,
-                linear-gradient(45deg, rgba(255, 0, 102, 0.5) 0%, transparent 30%) bottom left;
-            background-size: 20px 20px;
-            background-repeat: no-repeat;
-        }
-
-        .streak-indicator.legendary {
-            border-color: rgba(255, 215, 0, 0.8);
-            box-shadow:
-                0 0 60px rgba(255, 215, 0, 0.5),
-                0 0 120px rgba(255, 215, 0, 0.25),
-                inset 0 0 60px rgba(255, 215, 0, 0.2);
-            animation: legendaryPulse 0.4s ease-in-out infinite;
-        }
-        .streak-indicator.legendary::before {
-            background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.25) 0%, transparent 70%);
-            animation: innerGlowPulse 0.4s ease-in-out infinite;
-        }
-        .streak-indicator.legendary::after {
-            background:
-                linear-gradient(135deg, rgba(255, 215, 0, 0.6) 0%, transparent 30%) top left,
-                linear-gradient(225deg, rgba(255, 215, 0, 0.6) 0%, transparent 30%) top right,
-                linear-gradient(315deg, rgba(255, 215, 0, 0.6) 0%, transparent 30%) bottom right,
-                linear-gradient(45deg, rgba(255, 215, 0, 0.6) 0%, transparent 30%) bottom left;
-            background-size: 20px 20px;
-            background-repeat: no-repeat;
-        }
-
-        @keyframes firePulse {
-            0%, 100% { transform: translateY(-50%) scale(1); }
-            50% { transform: translateY(-50%) scale(1.04); }
-        }
-
-        @keyframes legendaryPulse {
-            0%, 100% { transform: translateY(-50%) scale(1); }
-            50% { transform: translateY(-50%) scale(1.06); }
-        }
-
-        @keyframes innerGlowPulse {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
-        }
-
-        /* Streak icon */
-        .streak-icon {
-            font-size: 20px;
-            margin-bottom: 6px;
-            filter: drop-shadow(0 0 8px currentColor);
-            transition: all 0.3s ease;
-        }
-        .streak-indicator.hot .streak-icon,
-        .streak-indicator.fire .streak-icon,
-        .streak-indicator.legendary .streak-icon {
-            animation: iconPulse 0.5s ease-in-out infinite;
-        }
-        @keyframes iconPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
+        /* Multiplier display at top */
         .streak-multiplier {
             font-family: 'Orbitron', Arial, sans-serif;
-            font-size: 28px;
+            font-size: 18px;
             font-weight: 900;
             color: #00ffff;
             text-shadow:
-                0 0 10px rgba(0, 255, 255, 0.8),
-                0 0 20px rgba(0, 255, 255, 0.5),
-                0 0 40px rgba(0, 255, 255, 0.3);
-            margin-bottom: 10px;
+                0 0 10px rgba(0, 255, 255, 0.9),
+                0 0 20px rgba(0, 255, 255, 0.6),
+                0 0 30px rgba(0, 255, 255, 0.4);
+            margin-bottom: 8px;
+            white-space: nowrap;
             transition: all 0.3s ease;
-            position: relative;
-            z-index: 1;
         }
 
         .streak-indicator.hot .streak-multiplier {
             color: #ff8800;
-            text-shadow:
-                0 0 10px rgba(255, 136, 0, 0.9),
-                0 0 25px rgba(255, 136, 0, 0.6),
-                0 0 50px rgba(255, 136, 0, 0.4);
+            text-shadow: 0 0 15px rgba(255, 136, 0, 1), 0 0 30px rgba(255, 136, 0, 0.6);
         }
 
         .streak-indicator.fire .streak-multiplier {
             color: #ff0066;
-            text-shadow:
-                0 0 15px rgba(255, 0, 102, 1),
-                0 0 30px rgba(255, 0, 102, 0.7),
-                0 0 60px rgba(255, 0, 102, 0.5);
+            text-shadow: 0 0 15px rgba(255, 0, 102, 1), 0 0 30px rgba(255, 0, 102, 0.7);
+            animation: multiplierPulse 0.4s ease-in-out infinite;
         }
 
         .streak-indicator.legendary .streak-multiplier {
-            background: linear-gradient(135deg, #ffd700 0%, #fff 50%, #ffd700 100%);
+            background: linear-gradient(180deg, #ffd700 0%, #fff 50%, #ffd700 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1)) drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 1));
+            animation: multiplierPulse 0.3s ease-in-out infinite;
         }
 
-        .streak-bar-container {
-            width: 100%;
-            height: 8px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 4px;
-            overflow: hidden;
+        @keyframes multiplierPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Icon above bar */
+        .streak-icon {
+            font-size: 20px;
             margin-bottom: 8px;
-            position: relative;
-            z-index: 1;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            filter: drop-shadow(0 0 8px currentColor);
+            transition: all 0.3s ease;
         }
 
+        .streak-indicator.hot .streak-icon,
+        .streak-indicator.fire .streak-icon,
+        .streak-indicator.legendary .streak-icon {
+            animation: iconBounce 0.5s ease-in-out infinite;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-3px) scale(1.15); }
+        }
+
+        /* Vertical bar container */
+        .streak-bar-container {
+            flex: 1;
+            width: 20px;
+            background: linear-gradient(180deg, rgba(0, 20, 40, 0.9) 0%, rgba(10, 0, 20, 0.95) 100%);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 0 20px rgba(0, 255, 255, 0.2),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .streak-indicator.hot .streak-bar-container {
+            border-color: rgba(255, 136, 0, 0.5);
+            box-shadow: 0 0 25px rgba(255, 136, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .streak-indicator.fire .streak-bar-container {
+            border-color: rgba(255, 0, 102, 0.6);
+            box-shadow: 0 0 30px rgba(255, 0, 102, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            animation: containerPulse 0.5s ease-in-out infinite;
+        }
+
+        .streak-indicator.legendary .streak-bar-container {
+            border-color: rgba(255, 215, 0, 0.8);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.5), 0 0 80px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            animation: containerPulse 0.4s ease-in-out infinite;
+        }
+
+        @keyframes containerPulse {
+            0%, 100% { transform: scaleX(1); }
+            50% { transform: scaleX(1.05); }
+        }
+
+        /* The fill bar - fills from bottom to top */
         .streak-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #00ffff, #00ff88);
-            border-radius: 4px;
-            transition: width 0.3s ease, background 0.3s ease;
-            position: relative;
-            box-shadow: 0 0 10px currentColor;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 0%;
+            background: linear-gradient(180deg, #00ffff 0%, #00ff88 50%, #0088ff 100%);
+            border-radius: 0 0 8px 8px;
+            transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow:
+                0 0 15px rgba(0, 255, 255, 0.8),
+                inset 0 0 10px rgba(255, 255, 255, 0.3);
         }
 
-        /* Animated shine effect on bar */
+        /* Animated energy effect rising up the bar */
+        .streak-bar::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200%;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.1) 20%,
+                rgba(255, 255, 255, 0.3) 40%,
+                rgba(255, 255, 255, 0.1) 60%,
+                transparent 80%,
+                transparent 100%);
+            animation: energyRise 1.5s ease-in-out infinite;
+        }
+
+        @keyframes energyRise {
+            0% { transform: translateY(100%); }
+            100% { transform: translateY(-100%); }
+        }
+
+        /* Glow orb at top of fill */
         .streak-bar::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            animation: barShine 2s ease-in-out infinite;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            background: radial-gradient(circle, #fff 0%, #00ffff 40%, transparent 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff;
+            animation: orbPulse 0.8s ease-in-out infinite;
         }
 
-        @keyframes barShine {
-            0% { left: -100%; }
-            50%, 100% { left: 100%; }
+        @keyframes orbPulse {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+            50% { transform: translateX(-50%) scale(1.3); opacity: 1; }
         }
 
         .streak-indicator.hot .streak-bar {
-            background: linear-gradient(90deg, #ff8800, #ffcc00);
+            background: linear-gradient(180deg, #ffcc00 0%, #ff8800 50%, #ff6600 100%);
+            box-shadow: 0 0 20px rgba(255, 136, 0, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .streak-indicator.hot .streak-bar::after {
+            background: radial-gradient(circle, #fff 0%, #ff8800 40%, transparent 70%);
+            box-shadow: 0 0 15px #ff8800, 0 0 30px #ffcc00;
         }
 
         .streak-indicator.fire .streak-bar {
-            background: linear-gradient(90deg, #ff0066, #ff4400);
+            background: linear-gradient(180deg, #ff4400 0%, #ff0066 50%, #cc0044 100%);
+            box-shadow: 0 0 25px rgba(255, 0, 102, 1), inset 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .streak-indicator.fire .streak-bar::after {
+            background: radial-gradient(circle, #fff 0%, #ff0066 40%, transparent 70%);
+            box-shadow: 0 0 20px #ff0066, 0 0 40px #ff4400;
         }
 
         .streak-indicator.legendary .streak-bar {
-            background: linear-gradient(90deg, #ffd700, #fff, #ffd700);
-            background-size: 200% 100%;
-            animation: legendaryBar 1s ease-in-out infinite;
+            background: linear-gradient(180deg, #fff 0%, #ffd700 30%, #ffaa00 70%, #ff8800 100%);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.5);
         }
 
-        @keyframes legendaryBar {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+        .streak-indicator.legendary .streak-bar::after {
+            background: radial-gradient(circle, #fff 0%, #ffd700 30%, transparent 70%);
+            box-shadow: 0 0 25px #ffd700, 0 0 50px #ffaa00, 0 0 80px #ff8800;
+            animation: legendaryOrb 0.3s ease-in-out infinite;
         }
 
+        @keyframes legendaryOrb {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.5); }
+        }
+
+        /* Tier label */
         .streak-label {
             font-family: 'Orbitron', Arial, sans-serif;
-            font-size: 9px;
-            color: rgba(255, 255, 255, 0.6);
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.5);
             text-transform: uppercase;
-            letter-spacing: 2px;
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            letter-spacing: 1px;
+            margin-top: 8px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
         }
 
         .streak-indicator.hot .streak-label {
-            color: rgba(255, 200, 150, 0.7);
-            text-shadow: 0 0 10px rgba(255, 136, 0, 0.3);
+            color: #ff8800;
+            text-shadow: 0 0 8px rgba(255, 136, 0, 0.6);
         }
 
         .streak-indicator.fire .streak-label {
-            color: rgba(255, 180, 200, 0.7);
-            text-shadow: 0 0 10px rgba(255, 0, 102, 0.3);
+            color: #ff0066;
+            text-shadow: 0 0 8px rgba(255, 0, 102, 0.6);
         }
 
         .streak-indicator.legendary .streak-label {
-            color: rgba(255, 240, 200, 0.8);
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+
+        /* Segment markers on the bar */
+        .streak-bar-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                180deg,
+                transparent 0px,
+                transparent 18px,
+                rgba(255, 255, 255, 0.1) 18px,
+                rgba(255, 255, 255, 0.1) 20px
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Tier threshold markers */
+        .streak-bar-container::after {
+            content: '';
+            position: absolute;
+            left: -4px;
+            right: -4px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow:
+                0 calc(70vh * 0.5 * 0.2) 0 rgba(255, 136, 0, 0.4),
+                0 calc(70vh * 0.5 * 0.33) 0 rgba(255, 0, 102, 0.4),
+                0 calc(70vh * 0.5 * 0.66) 0 rgba(255, 215, 0, 0.4);
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0;
         }
 
         /* Screen shake for incorrect answers */
@@ -1607,40 +1604,6 @@
         .modal-back-btn:hover {
             background: rgba(0, 255, 255, 0.2);
             transform: scale(1.1);
-        }
-
-        /* Input selector for mobile */
-        #inputSelector {
-            position: absolute;
-            top: clamp(60px, 8vh, 75px);
-            right: clamp(10px, 2vw, 15px);
-            background: linear-gradient(135deg, rgba(0, 20, 40, 0.92) 0%, rgba(20, 0, 40, 0.92) 100%);
-            padding: clamp(8px, 1.5vw, 10px);
-            border-radius: 8px;
-            border: 1px solid rgba(0, 255, 255, 0.4);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-            z-index: 100;
-            font-family: 'Orbitron', Arial, sans-serif;
-            width: clamp(140px, 25vw, 160px);
-        }
-
-        .input-method-btn {
-            width: 100%;
-            padding: clamp(8px, 1.5vw, 6px) clamp(10px, 2vw, 8px);
-            margin: 3px 0;
-            background: linear-gradient(135deg, rgba(0, 255, 255, 0.08) 0%, rgba(255, 0, 255, 0.08) 100%);
-            border: 1px solid rgba(0, 255, 255, 0.25);
-            color: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Orbitron', Arial, sans-serif;
-            font-size: clamp(10px, 2vw, 11px);
-            text-align: left;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            min-height: 36px;
         }
 
         /* Portrait mode adjustments */
