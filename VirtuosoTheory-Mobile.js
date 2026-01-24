@@ -3671,12 +3671,16 @@ class VirtuosoTheory {
         const horizonY = height * 0.65;
         const vanishingPointX = width / 2;
 
-        // Clear canvas
-        ctx.clearRect(0, 0, width, height);
+        // Clear canvas with background color
+        ctx.fillStyle = '#000011';
+        ctx.fillRect(0, 0, width, height);
 
-        // Draw horizon line glow (multiple layers)
+        // Use 'lighter' composite for ADD blend mode effect
+        ctx.globalCompositeOperation = 'lighter';
+
+        // Glowing horizon line (30 layers for bloom effect - matching Virtuoso exactly)
         for (let i = 30; i > 0; i--) {
-            const alpha = 0.008 * (31 - i);
+            const alpha = 0.002 * (31 - i);  // Very subtle, matching reference
             const lineWidth = i * 2;
             ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
             ctx.lineWidth = lineWidth;
@@ -3686,6 +3690,9 @@ class VirtuosoTheory {
             ctx.stroke();
         }
 
+        // Reset composite for main elements
+        ctx.globalCompositeOperation = 'source-over';
+
         // Main horizon line
         ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
         ctx.lineWidth = 2;
@@ -3694,11 +3701,12 @@ class VirtuosoTheory {
         ctx.lineTo(width, horizonY);
         ctx.stroke();
 
-        // Horizontal perspective lines (below horizon)
-        for (let i = 1; i <= 8; i++) {
-            const progress = i / 8;
+        // Horizontal grid lines (perspective - closer = more spaced)
+        // Exactly 6 lines as in reference
+        for (let i = 1; i <= 6; i++) {
+            const progress = i / 6;
             const y = horizonY + (height - horizonY) * (progress * progress);
-            const alpha = 0.08 * (1 - progress * 0.6);
+            const alpha = 0.06 * (1 - progress * 0.5);
             ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -3707,14 +3715,14 @@ class VirtuosoTheory {
             ctx.stroke();
         }
 
-        // Vertical perspective lines (converging to vanishing point)
-        const lineSpacing = this.isMobile ? 80 : 100;
-        for (let i = -10; i <= 10; i++) {
+        // Vertical perspective lines (converge at vanishing point)
+        // Matching reference: 0.25 start multiplier, 2.5 end multiplier
+        const lineSpacing = 100;
+        for (let i = -8; i <= 8; i++) {
             if (i === 0) continue;
-            const startX = vanishingPointX + (i * lineSpacing * 0.3);
-            const endX = vanishingPointX + (i * lineSpacing * 3);
-            const alpha = 0.06 * (1 - Math.abs(i) * 0.05);
-            ctx.strokeStyle = `rgba(0, 255, 255, ${Math.max(0.02, alpha)})`;
+            const startX = vanishingPointX + (i * lineSpacing * 0.25);
+            const endX = vanishingPointX + (i * lineSpacing * 2.5);
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.06)';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(startX, horizonY);
@@ -3722,12 +3730,12 @@ class VirtuosoTheory {
             ctx.stroke();
         }
 
-        // Bottom gradient fade
-        const gradient = ctx.createLinearGradient(0, height - 150, 0, height);
-        gradient.addColorStop(0, 'rgba(0, 0, 34, 0)');
-        gradient.addColorStop(1, 'rgba(0, 0, 34, 0.8)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, height - 150, width, 150);
+        // Bottom gradient fade (150px, matching reference)
+        for (let i = 0; i < 150; i++) {
+            const alpha = (i / 150) * 0.25;
+            ctx.fillStyle = `rgba(0, 0, 34, ${alpha})`;
+            ctx.fillRect(0, height - i, width, 1);
+        }
 
         // Initialize floating particles if not already done
         if (!this.particlesInitialized) {
@@ -3740,7 +3748,10 @@ class VirtuosoTheory {
         const container = document.getElementById('particlesContainer');
         if (!container) return;
 
-        const particleCount = this.isMobile ? 20 : 35;
+        // Clear any existing particles
+        container.innerHTML = '';
+
+        const particleCount = this.isMobile ? 20 : 30;
         const width = window.innerWidth;
         const height = window.innerHeight;
         const horizonY = height * 0.65;
@@ -3751,56 +3762,82 @@ class VirtuosoTheory {
     }
 
     createParticle(container, width, height, horizonY, delay) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
+        // Create particle with glow layers (matching Virtuoso reference)
+        const particleWrapper = document.createElement('div');
+        particleWrapper.className = 'particle-wrapper';
 
-        const size = 2 + Math.random() * 4;
+        const size = 1 + Math.random() * 2;  // Smaller, like reference (1-3)
         const startX = Math.random() * width;
         const startY = horizonY + Math.random() * (height - horizonY);
 
-        particle.style.cssText = `
-            width: ${size}px;
-            height: ${size}px;
+        particleWrapper.style.cssText = `
+            position: absolute;
             left: ${startX}px;
             top: ${startY}px;
-            background: radial-gradient(circle, rgba(0, 255, 255, 0.8) 0%, rgba(0, 255, 255, 0) 70%);
-            box-shadow: 0 0 ${size * 2}px rgba(0, 255, 255, 0.5), 0 0 ${size * 4}px rgba(0, 255, 255, 0.3);
+            pointer-events: none;
             opacity: 0;
         `;
 
-        container.appendChild(particle);
+        // Create glow layers (3 layers, matching reference)
+        for (let j = 3; j > 0; j--) {
+            const glowSize = size + j * 2;
+            const alpha = 0.05 * (4 - j);
+            const glow = document.createElement('div');
+            glow.style.cssText = `
+                position: absolute;
+                width: ${glowSize * 2}px;
+                height: ${glowSize * 2}px;
+                left: ${-glowSize}px;
+                top: ${-glowSize}px;
+                background: radial-gradient(circle, rgba(0, 255, 255, ${alpha}) 0%, transparent 70%);
+                border-radius: 50%;
+                mix-blend-mode: screen;
+            `;
+            particleWrapper.appendChild(glow);
+        }
 
-        // Animate particle
+        // Core particle
+        const core = document.createElement('div');
+        core.style.cssText = `
+            position: absolute;
+            width: ${size * 2}px;
+            height: ${size * 2}px;
+            left: ${-size}px;
+            top: ${-size}px;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            mix-blend-mode: screen;
+        `;
+        particleWrapper.appendChild(core);
+
+        container.appendChild(particleWrapper);
+
+        // Animate particle (matching Virtuoso timing)
         const animateParticle = () => {
             const newStartX = Math.random() * width;
             const newStartY = horizonY + Math.random() * (height - horizonY);
-            const duration = 6000 + Math.random() * 6000;
-            const driftX = (Math.random() - 0.5) * 60;
-            const riseY = 40 + Math.random() * 80;
+            const duration = 6000 + Math.random() * 4000;  // 6-10 seconds
+            const driftX = (Math.random() - 0.5) * 40;  // -20 to +20
+            const riseY = 30 + Math.random() * 30;  // 30-60 pixels
 
-            particle.style.transition = 'none';
-            particle.style.left = `${newStartX}px`;
-            particle.style.top = `${newStartY}px`;
-            particle.style.opacity = '0';
+            particleWrapper.style.transition = 'none';
+            particleWrapper.style.left = `${newStartX}px`;
+            particleWrapper.style.top = `${newStartY}px`;
+            particleWrapper.style.opacity = '1';
 
             // Force reflow
-            particle.offsetHeight;
+            particleWrapper.offsetHeight;
 
-            particle.style.transition = `all ${duration}ms ease-out`;
-            particle.style.left = `${newStartX + driftX}px`;
-            particle.style.top = `${newStartY - riseY}px`;
-            particle.style.opacity = '0.6';
-
-            // Fade out near the end
-            setTimeout(() => {
-                particle.style.opacity = '0';
-            }, duration * 0.7);
+            particleWrapper.style.transition = `all ${duration}ms cubic-bezier(0.445, 0.05, 0.55, 0.95)`;
+            particleWrapper.style.left = `${newStartX + driftX}px`;
+            particleWrapper.style.top = `${newStartY - riseY}px`;
+            particleWrapper.style.opacity = '0';
 
             // Restart animation
             setTimeout(animateParticle, duration);
         };
 
-        setTimeout(animateParticle, delay);
+        setTimeout(animateParticle, delay + Math.random() * 4000);
     }
 }
 
