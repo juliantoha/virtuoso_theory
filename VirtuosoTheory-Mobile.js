@@ -3793,8 +3793,11 @@ class VirtuosoTheory {
         pauseBtn.style.display = 'none';
         pauseBtn.disabled = true;
 
-        const levelName = this.currentLevel?.name || 'Unknown';
-        const categoryName = this.currentCategory?.name || 'Unknown';
+        // Save level/category for Play Again before clearing
+        const completedLevel = this.currentLevel;
+        const completedCategory = this.currentCategory;
+        const levelName = completedLevel?.name || 'Unknown';
+        const categoryName = completedCategory?.name || 'Unknown';
 
         this.currentLevel = null;
         this.currentCategory = null;
@@ -3804,11 +3807,11 @@ class VirtuosoTheory {
         const existingNotes = this.staff.svg.querySelectorAll('.staff-note, .staff-note-glow, .ledger-line');
         existingNotes.forEach(el => el.remove());
 
-        // Show premium results screen
-        this.showResultsScreen(levelName, categoryName);
+        // Show premium results screen with level data for Play Again
+        this.showResultsScreen(levelName, categoryName, completedLevel, completedCategory);
     }
 
-    showResultsScreen(levelName, categoryName) {
+    showResultsScreen(levelName, categoryName, completedLevel = null, completedCategory = null) {
         // Play results fanfare
         this.playUISound('results');
 
@@ -4136,12 +4139,19 @@ class VirtuosoTheory {
 
         // Play Again button handler - go back to input/duration selection
         document.getElementById('playAgainBtn').addEventListener('click', () => {
+            if (!completedLevel) {
+                console.error('No level data available for Play Again');
+                overlay.remove();
+                return;
+            }
             overlay.style.transition = 'opacity 0.3s ease';
             overlay.style.opacity = '0';
             setTimeout(() => {
                 overlay.remove();
-                // Show the setup screen (input method + duration selection)
-                this.showDurationSelector(this.currentLevel);
+                // Restore the level/category and show setup screen
+                this.currentLevel = completedLevel;
+                this.currentCategory = completedCategory;
+                this.showDurationSelector(completedLevel);
             }, 300);
         });
 
