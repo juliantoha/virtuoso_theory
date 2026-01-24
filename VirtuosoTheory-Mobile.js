@@ -4130,8 +4130,8 @@ class VirtuosoTheory {
             overlay.style.opacity = '0';
             setTimeout(() => {
                 overlay.remove();
-                // Restart the same level
-                this.startLevel(levelName, categoryName);
+                // Restart the same level (currentLevel is already set)
+                this.startGame();
             }, 300);
         });
 
