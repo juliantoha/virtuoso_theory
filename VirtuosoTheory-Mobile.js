@@ -1965,22 +1965,23 @@ class VirtuosoTheory {
     initStaff() {
         const svg = document.getElementById('staff-svg');
         svg.innerHTML = '';
-        
+
         const container = svg.parentElement;
         const width = 900;
-        const height = 320;
-        
+        const height = 400; // Increased from 320 for low notes like C2
+
         svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
         svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-        
+
         const lineSpacing = 20;
         const staffHeight = lineSpacing * 4;
         const fixedGapBetweenStaves = 50;
         const totalStaffHeight = staffHeight * 2 + fixedGapBetweenStaves;
-        
-        const verticalCenter = height / 2;
+
+        // Shift staff up significantly to allow room at bottom for low ledger lines (C2)
+        const verticalCenter = height / 2 - 60;
         const staffGroupTop = verticalCenter - (totalStaffHeight / 2) + 15;
-        
+
         const trebleY = staffGroupTop + (staffHeight / 2);
         const bassY = trebleY + staffHeight + fixedGapBetweenStaves;
         
@@ -2427,107 +2428,202 @@ class VirtuosoTheory {
         const defaultTime = level.timeLimit || 60;
         this.selectedDuration = defaultTime;
 
+        // Get available input methods from InputManager
+        const availableMethods = this.inputManager?.availableMethods || { virtual: true };
+        const currentMethod = this.inputManager?.currentInputMethod || 'virtual';
+
+        // Build input method buttons
+        const inputMethods = [
+            { id: 'virtual', name: 'Virtual Piano', icon: GameIcons.get('piano', 20, 'currentColor') },
+            { id: 'midi', name: 'MIDI Controller', icon: GameIcons.get('midi', 20, 'currentColor') },
+            { id: 'microphone', name: 'Microphone', icon: GameIcons.get('microphone', 20, 'currentColor') }
+        ];
+
+        const inputButtonsHtml = inputMethods
+            .filter(m => availableMethods[m.id])
+            .map(m => `
+                <button class="setup-input-btn ${m.id === currentMethod ? 'selected' : ''}" data-method="${m.id}">
+                    <span class="input-icon">${m.icon}</span>
+                    <span class="input-name">${m.name}</span>
+                </button>
+            `).join('');
+
         const overlay = document.createElement('div');
-        overlay.id = 'durationModal';
+        overlay.id = 'gameSetupModal';
         overlay.innerHTML = `
             <style>
-                #durationModal {
+                #gameSetupModal {
                     position: fixed;
                     top: 0;
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: rgba(0, 0, 0, 0.9);
+                    background: rgba(0, 0, 0, 0.95);
                     display: flex;
                     justify-content: center;
                     align-items: center;
                     z-index: 600;
                     font-family: 'Orbitron', Arial, sans-serif;
+                    overflow-y: auto;
+                    padding: 20px;
+                    box-sizing: border-box;
                 }
-                .duration-content {
+                .setup-content {
                     background: linear-gradient(135deg, rgba(0, 20, 40, 0.98) 0%, rgba(20, 0, 40, 0.98) 100%);
                     border: 2px solid rgba(0, 255, 255, 0.5);
                     border-radius: 20px;
-                    padding: 30px;
-                    max-width: 400px;
-                    width: 90%;
+                    padding: 25px 30px 30px;
+                    max-width: 420px;
+                    width: 100%;
                     text-align: center;
+                    position: relative;
+                    max-height: 90vh;
+                    overflow-y: auto;
                 }
-                .duration-title {
-                    font-size: 24px;
-                    color: #00ffff;
-                    margin-bottom: 8px;
-                    text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-                }
-                .duration-level {
-                    font-size: 14px;
-                    color: rgba(255, 255, 255, 0.6);
-                    margin-bottom: 25px;
-                }
-                .duration-presets {
-                    display: flex;
-                    justify-content: center;
-                    gap: 10px;
-                    flex-wrap: wrap;
-                    margin-bottom: 20px;
-                }
-                .duration-btn {
-                    padding: 12px 20px;
-                    font-family: 'Orbitron', Arial, sans-serif;
-                    font-size: 16px;
-                    font-weight: bold;
-                    color: #00ffff;
+                .setup-back {
+                    position: absolute;
+                    top: 15px;
+                    left: 15px;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
                     background: rgba(0, 255, 255, 0.1);
-                    border: 2px solid rgba(0, 255, 255, 0.4);
-                    border-radius: 10px;
+                    border: 2px solid rgba(0, 255, 255, 0.3);
+                    color: #00ffff;
+                    font-size: 18px;
                     cursor: pointer;
-                    transition: all 0.2s ease;
-                    min-width: 70px;
-                }
-                .duration-btn:hover {
-                    background: rgba(0, 255, 255, 0.2);
-                    transform: scale(1.05);
-                }
-                .duration-btn.selected {
-                    background: rgba(0, 255, 255, 0.3);
-                    border-color: #00ffff;
-                    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-                }
-                .duration-custom {
-                    margin: 20px 0;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 10px;
+                    transition: all 0.2s ease;
                 }
-                .duration-custom label {
-                    color: rgba(255, 255, 255, 0.7);
-                    font-size: 14px;
+                .setup-back:hover {
+                    background: rgba(0, 255, 255, 0.2);
+                    transform: scale(1.1);
                 }
-                .duration-input {
-                    width: 80px;
-                    padding: 10px;
-                    font-family: 'Orbitron', Arial, sans-serif;
-                    font-size: 18px;
-                    text-align: center;
+                .setup-level-name {
+                    font-size: 20px;
                     color: #00ffff;
-                    background: rgba(0, 0, 0, 0.5);
-                    border: 2px solid rgba(0, 255, 255, 0.4);
-                    border-radius: 8px;
-                    outline: none;
+                    margin-bottom: 5px;
+                    margin-top: 10px;
+                    text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
                 }
-                .duration-input:focus {
+                .setup-category {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.5);
+                    margin-bottom: 20px;
+                }
+                .setup-section {
+                    margin-bottom: 20px;
+                }
+                .setup-section-title {
+                    font-size: 11px;
+                    color: rgba(255, 255, 255, 0.6);
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    margin-bottom: 12px;
+                }
+                .setup-input-methods {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .setup-input-btn {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 15px;
+                    font-family: 'Orbitron', Arial, sans-serif;
+                    font-size: 14px;
+                    color: rgba(255, 255, 255, 0.8);
+                    background: rgba(0, 255, 255, 0.05);
+                    border: 2px solid rgba(0, 255, 255, 0.2);
+                    border-radius: 10px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    text-align: left;
+                }
+                .setup-input-btn:hover {
+                    background: rgba(0, 255, 255, 0.1);
+                    border-color: rgba(0, 255, 255, 0.4);
+                }
+                .setup-input-btn.selected {
+                    background: rgba(0, 255, 255, 0.15);
+                    border-color: #00ffff;
+                    color: #00ffff;
+                    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+                }
+                .setup-input-btn .input-icon {
+                    display: flex;
+                    align-items: center;
+                    opacity: 0.8;
+                }
+                .setup-input-btn.selected .input-icon {
+                    opacity: 1;
+                }
+                .setup-duration-presets {
+                    display: flex;
+                    justify-content: center;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    margin-bottom: 12px;
+                }
+                .setup-duration-btn {
+                    padding: 10px 16px;
+                    font-family: 'Orbitron', Arial, sans-serif;
+                    font-size: 14px;
+                    font-weight: bold;
+                    color: #00ffff;
+                    background: rgba(0, 255, 255, 0.1);
+                    border: 2px solid rgba(0, 255, 255, 0.3);
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    min-width: 60px;
+                }
+                .setup-duration-btn:hover {
+                    background: rgba(0, 255, 255, 0.2);
+                }
+                .setup-duration-btn.selected {
+                    background: rgba(0, 255, 255, 0.25);
                     border-color: #00ffff;
                     box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
                 }
-                .duration-max {
-                    font-size: 11px;
-                    color: rgba(255, 255, 255, 0.4);
-                    margin-top: 5px;
+                .setup-custom-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    margin-top: 10px;
                 }
-                .duration-start {
-                    margin-top: 25px;
-                    padding: 15px 50px;
+                .setup-custom-row label {
+                    color: rgba(255, 255, 255, 0.6);
+                    font-size: 12px;
+                }
+                .setup-duration-input {
+                    width: 70px;
+                    padding: 8px;
+                    font-family: 'Orbitron', Arial, sans-serif;
+                    font-size: 16px;
+                    text-align: center;
+                    color: #00ffff;
+                    background: rgba(0, 0, 0, 0.5);
+                    border: 2px solid rgba(0, 255, 255, 0.3);
+                    border-radius: 6px;
+                    outline: none;
+                }
+                .setup-duration-input:focus {
+                    border-color: #00ffff;
+                    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+                }
+                .setup-max-note {
+                    font-size: 10px;
+                    color: rgba(255, 255, 255, 0.3);
+                    margin-top: 8px;
+                }
+                .setup-start-btn {
+                    margin-top: 20px;
+                    padding: 16px 60px;
                     font-family: 'Orbitron', Arial, sans-serif;
                     font-size: 18px;
                     font-weight: bold;
@@ -2537,65 +2633,72 @@ class VirtuosoTheory {
                     border-radius: 12px;
                     cursor: pointer;
                     text-transform: uppercase;
-                    letter-spacing: 2px;
+                    letter-spacing: 3px;
                     box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
                     transition: all 0.2s ease;
                 }
-                .duration-start:hover {
+                .setup-start-btn:hover {
                     transform: scale(1.05);
                     box-shadow: 0 0 50px rgba(0, 255, 255, 0.7);
                 }
-                .duration-back {
-                    position: absolute;
-                    top: 15px;
-                    left: 15px;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    background: rgba(0, 255, 255, 0.1);
-                    border: 2px solid rgba(0, 255, 255, 0.3);
-                    color: #00ffff;
-                    font-size: 20px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s ease;
-                }
-                .duration-back:hover {
-                    background: rgba(0, 255, 255, 0.2);
-                    transform: scale(1.1);
+                .setup-start-btn:active {
+                    transform: scale(0.98);
                 }
             </style>
-            <div class="duration-content" style="position: relative;">
-                <button class="duration-back" id="durationBack">←</button>
-                <div class="duration-title">SET DURATION</div>
-                <div class="duration-level">${level.name}</div>
-                <div class="duration-presets">
-                    ${this.durationPresets.map(t => `
-                        <button class="duration-btn ${t === defaultTime ? 'selected' : ''}" data-time="${t}">${t}s</button>
-                    `).join('')}
+            <div class="setup-content">
+                <button class="setup-back" id="setupBack">←</button>
+                <div class="setup-level-name">${level.name}</div>
+                <div class="setup-category">${this.currentCategory?.name || ''}</div>
+
+                <div class="setup-section">
+                    <div class="setup-section-title">Input Method</div>
+                    <div class="setup-input-methods">
+                        ${inputButtonsHtml}
+                    </div>
                 </div>
-                <div class="duration-custom">
-                    <label>Custom:</label>
-                    <input type="number" class="duration-input" id="customDuration"
-                           value="${defaultTime}" min="10" max="${this.maxDuration}">
-                    <label>sec</label>
+
+                <div class="setup-section">
+                    <div class="setup-section-title">Duration</div>
+                    <div class="setup-duration-presets">
+                        ${this.durationPresets.map(t => `
+                            <button class="setup-duration-btn ${t === defaultTime ? 'selected' : ''}" data-time="${t}">${t}s</button>
+                        `).join('')}
+                    </div>
+                    <div class="setup-custom-row">
+                        <label>Custom:</label>
+                        <input type="number" class="setup-duration-input" id="setupCustomDuration"
+                               value="${defaultTime}" min="10" max="${this.maxDuration}">
+                        <label>sec</label>
+                    </div>
+                    <div class="setup-max-note">Max: ${this.maxDuration} seconds</div>
                 </div>
-                <div class="duration-max">Maximum: ${this.maxDuration} seconds</div>
-                <button class="duration-start" id="durationStart">START</button>
+
+                <button class="setup-start-btn" id="setupStartBtn">START GAME</button>
             </div>
         `;
 
         document.body.appendChild(overlay);
 
-        // Preset button handlers
-        const presetBtns = overlay.querySelectorAll('.duration-btn');
-        const customInput = document.getElementById('customDuration');
-
-        presetBtns.forEach(btn => {
+        // Input method handlers
+        const inputBtns = overlay.querySelectorAll('.setup-input-btn');
+        inputBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                presetBtns.forEach(b => b.classList.remove('selected'));
+                inputBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                const method = btn.dataset.method;
+                if (this.inputManager) {
+                    this.inputManager.switchInputMethod(method);
+                }
+            });
+        });
+
+        // Duration preset handlers
+        const durationBtns = overlay.querySelectorAll('.setup-duration-btn');
+        const customInput = document.getElementById('setupCustomDuration');
+
+        durationBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                durationBtns.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 const time = parseInt(btn.dataset.time);
                 this.selectedDuration = time;
@@ -2609,77 +2712,29 @@ class VirtuosoTheory {
             value = Math.max(10, Math.min(this.maxDuration, value));
             this.selectedDuration = value;
 
-            // Update preset selection
-            presetBtns.forEach(btn => {
+            durationBtns.forEach(btn => {
                 btn.classList.toggle('selected', parseInt(btn.dataset.time) === value);
             });
         });
 
         // Back button
-        document.getElementById('durationBack').addEventListener('click', () => {
+        document.getElementById('setupBack').addEventListener('click', () => {
             overlay.remove();
             this.openLevelModal();
         });
 
-        // Start button
-        document.getElementById('durationStart').addEventListener('click', () => {
-            // Validate and clamp duration
+        // Start button - directly starts the game
+        document.getElementById('setupStartBtn').addEventListener('click', () => {
             this.selectedDuration = Math.max(10, Math.min(this.maxDuration, this.selectedDuration));
             overlay.remove();
-            this.confirmLevelSelection(level);
+
+            // Update UI elements
+            document.getElementById('levelName').textContent = level.name;
+            document.getElementById('timer').textContent = this.selectedDuration;
+
+            // Start the game directly
+            this.startGame();
         });
-    }
-
-    confirmLevelSelection(level) {
-        document.getElementById('levelName').textContent = level.name;
-
-        const startBtn = document.getElementById('startBtn');
-        startBtn.textContent = 'Start Game';
-        startBtn.classList.add('primary');
-
-        // Add pulsing glow effect to draw attention
-        startBtn.style.background = 'linear-gradient(135deg, rgba(0, 255, 255, 0.4) 0%, rgba(0, 200, 255, 0.4) 100%)';
-        startBtn.style.borderColor = '#00ffff';
-        startBtn.style.boxShadow = '0 0 30px rgba(0, 255, 255, 0.6)';
-        startBtn.style.transform = 'scale(1.05)';
-
-        // Add pulsing animation
-        startBtn.style.animation = 'pulseReady 2s ease-in-out infinite';
-
-        // Create or update the animation styles
-        if (!document.getElementById('readyButtonStyles')) {
-            const style = document.createElement('style');
-            style.id = 'readyButtonStyles';
-            style.textContent = `
-                @keyframes pulseReady {
-                    0%, 100% {
-                        box-shadow: 0 0 30px rgba(0, 255, 255, 0.6),
-                                    inset 0 0 20px rgba(0, 255, 255, 0.1);
-                        transform: scale(1.05);
-                        background: linear-gradient(135deg, rgba(0, 255, 255, 0.4) 0%, rgba(0, 200, 255, 0.4) 100%);
-                    }
-                    50% {
-                        box-shadow: 0 0 50px rgba(0, 255, 255, 0.9),
-                                    0 0 80px rgba(0, 255, 255, 0.4),
-                                    inset 0 0 30px rgba(0, 255, 255, 0.2);
-                        transform: scale(1.08);
-                        background: linear-gradient(135deg, rgba(0, 255, 255, 0.5) 0%, rgba(0, 200, 255, 0.5) 100%);
-                    }
-                }
-
-                .control-button.primary.ready-to-start {
-                    position: relative;
-                    overflow: visible;
-                    transition: all 0.3s ease;
-                }
-            `;
-            document.head.appendChild(style);
-        }
-
-        startBtn.classList.add('ready-to-start');
-
-        // Show selected duration
-        document.getElementById('timer').textContent = this.selectedDuration;
     }
 
     openCategoryModal() {
