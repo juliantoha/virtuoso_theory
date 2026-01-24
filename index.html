@@ -161,25 +161,46 @@
             }
         }
 
-        /* Game Stats */
-        .game-stats {
+        /* Main Game Layout */
+        .game-main {
             display: flex;
-            justify-content: center;
-            gap: clamp(15px, 3vw, 30px);
-            padding: 10px 5px;
-            flex: 0 0 auto;
-            flex-wrap: wrap;
+            flex: 1;
+            min-height: 0;
+            gap: 15px;
+            padding: 0 10px;
+        }
+
+        /* Sidebar with Stats */
+        .game-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Center Content Area */
+        .game-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
         }
 
         .stat-box {
             background: linear-gradient(135deg, rgba(0, 255, 255, 0.12) 0%, rgba(255, 0, 255, 0.12) 100%);
-            padding: clamp(6px, 1.2vw, 10px) clamp(12px, 2.5vw, 20px);
+            padding: 8px 12px;
             border-radius: 10px;
             border: 2px solid rgba(0, 255, 255, 0.4);
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: clamp(75px, 12vw, 95px);
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.15);
         }
 
@@ -212,16 +233,14 @@
 
         /* Control Area */
         .control-area {
-            padding: 6px 0 4px;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: clamp(10px, 3vw, 20px);
-            flex: 0 0 auto;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: auto;
         }
 
         .control-button {
-            padding: clamp(10px, 1.8vw, 8px) clamp(14px, 2.5vw, 18px);
+            padding: 10px 12px;
             border: 2px solid rgba(0, 255, 255, 0.5);
             background: linear-gradient(135deg, rgba(0, 255, 255, 0.15) 0%, rgba(0, 100, 200, 0.15) 100%);
             color: #00ffff;
@@ -230,12 +249,11 @@
             font-family: 'Orbitron', Arial, sans-serif;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
-            font-size: clamp(11px, 1.8vw, 13px);
+            letter-spacing: 0.08em;
+            font-size: 12px;
             transition: all 0.3s ease;
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
-            min-height: 40px;
-            min-width: 44px;
+            width: 100%;
         }
 
         .control-button:active:not(:disabled) {
@@ -258,15 +276,14 @@
 
         /* Staff Container */
         .staff-container {
-            width: calc(100% - 20px);
+            width: 100%;
             flex: 1 1 auto;
-            margin: 10px auto 10px;
+            margin: 5px 0;
             padding: 5px 10px 10px;
             position: relative;
             display: flex;
             align-items: center;
-            min-height: 320px;
-            max-height: 500px;
+            min-height: 280px;
         }
 
         #staff-svg {
@@ -794,29 +811,52 @@
                 font-size: clamp(20px, 5vw, 32px);
             }
             
-            .game-stats {
-                padding: 5px;
-                gap: 6px;
+            /* Mobile: Hide sidebar, show compact top bar */
+            .game-main {
+                flex-direction: column;
+                gap: 5px;
+                padding: 0 5px;
             }
-            
+
+            .game-sidebar {
+                flex-direction: row;
+                width: 100%;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .sidebar-stats {
+                flex-direction: row;
+                gap: 6px;
+                flex: 1;
+                justify-content: center;
+            }
+
             .stat-box {
                 min-width: 55px;
                 padding: 3px 8px;
             }
-            
+
             .stat-value {
                 font-size: clamp(16px, 3vw, 22px);
             }
-            
+
             .control-area {
-                padding: 5px 0;
+                flex-direction: row;
+                margin-top: 0;
+                gap: 5px;
             }
-            
+
+            .control-button {
+                padding: 6px 12px;
+                width: auto;
+            }
+
             .staff-container {
                 flex: 1 1 auto;
-                min-height: 200px;
-                padding: 10px;
-                margin: 5px auto;
+                min-height: 160px;
+                padding: 5px;
+                margin: 0;
             }
             
             .piano-container {
@@ -837,46 +877,56 @@
                 gap: 0;
                 justify-content: flex-start;
             }
-            
+
             .header {
                 padding: 2px 0;
             }
-            
+
             h1 {
                 font-size: clamp(16px, 4vw, 24px);
             }
-            
-            .game-stats {
-                padding: 3px;
+
+            /* Landscape: sidebar on left */
+            .game-main {
+                flex-direction: row;
                 gap: 10px;
             }
-            
+
+            .game-sidebar {
+                width: 100px;
+                flex-direction: column;
+            }
+
+            .sidebar-stats {
+                flex-direction: column;
+                gap: 5px;
+            }
+
             .stat-box {
                 padding: 2px 6px;
             }
-            
+
             .stat-value {
                 font-size: clamp(14px, 3vw, 20px);
             }
-            
+
             .stat-label {
                 font-size: 8px;
             }
-            
+
             .control-area {
-                padding: 3px 0;
+                flex-direction: column;
             }
-            
+
             .control-button {
-                min-height: 35px;
-                padding: 8px 12px;
+                padding: 6px 10px;
+                font-size: 10px;
             }
-            
+
             .staff-container {
-                min-height: 180px;
-                padding: 8px 10px;
-                flex: 1 1 auto;
-                margin: 5px auto;
+                min-height: 140px;
+                padding: 5px;
+                margin: 0;
             }
             
             .piano-container {
@@ -960,52 +1010,60 @@
                     <h1>VIRTUOSO THEORY</h1>
                 </div>
 
-                <!-- Game Stats -->
-                <div class="game-stats">
-                    <div class="stat-box">
-                        <div class="stat-label">Score</div>
-                        <div class="stat-value" id="score">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Time</div>
-                        <div class="stat-value" id="timer">--</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Streak</div>
-                        <div class="stat-value" id="streak">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Level</div>
-                        <div class="stat-value" id="levelName" style="font-size: clamp(12px, 2.5vw, 14px);">None</div>
-                    </div>
-                </div>
+                <!-- Main Game Layout: Sidebar + Content -->
+                <div class="game-main">
+                    <!-- Left Sidebar with Stats -->
+                    <div class="game-sidebar">
+                        <div class="sidebar-stats">
+                            <div class="stat-box">
+                                <div class="stat-label">Score</div>
+                                <div class="stat-value" id="score">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Time</div>
+                                <div class="stat-value" id="timer">--</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Streak</div>
+                                <div class="stat-value" id="streak">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Level</div>
+                                <div class="stat-value" id="levelName" style="font-size: clamp(10px, 1.5vw, 12px);">None</div>
+                            </div>
+                        </div>
 
-                <!-- Control Area -->
-                <div class="control-area">
-                    <button class="control-button primary" id="startBtn">Start</button>
-                    <button class="control-button" id="pauseBtn" disabled style="display: none;">Pause</button>
-                </div>
-
-                <!-- Streak Multiplier Indicator -->
-                <div class="streak-indicator" id="streakIndicator">
-                    <div class="streak-multiplier" id="streakMultiplier">1.0x</div>
-                    <div class="streak-bar-container">
-                        <div class="streak-bar" id="streakBar"></div>
+                        <!-- Control Area -->
+                        <div class="control-area">
+                            <button class="control-button primary" id="startBtn">Start</button>
+                            <button class="control-button" id="pauseBtn" disabled style="display: none;">Pause</button>
+                        </div>
                     </div>
-                    <div class="streak-label">MULTIPLIER</div>
-                </div>
 
-                <!-- Staff Container -->
-                <div class="staff-container">
-                    <svg id="staff-svg"></svg>
-                    <div class="feedback-display" id="feedbackDisplay"></div>
-                </div>
+                    <!-- Center Content: Staff + Piano -->
+                    <div class="game-center">
+                        <!-- Streak Multiplier Indicator -->
+                        <div class="streak-indicator" id="streakIndicator">
+                            <div class="streak-multiplier" id="streakMultiplier">1.0x</div>
+                            <div class="streak-bar-container">
+                                <div class="streak-bar" id="streakBar"></div>
+                            </div>
+                            <div class="streak-label">MULTIPLIER</div>
+                        </div>
 
-                <!-- Piano Container -->
-                <div class="piano-container">
-                    <div class="piano-scroller">
-                        <div id="pianoWrapper">
-                            <div id="piano"></div>
+                        <!-- Staff Container -->
+                        <div class="staff-container">
+                            <svg id="staff-svg"></svg>
+                            <div class="feedback-display" id="feedbackDisplay"></div>
+                        </div>
+
+                        <!-- Piano Container -->
+                        <div class="piano-container">
+                            <div class="piano-scroller">
+                                <div id="pianoWrapper">
+                                    <div id="piano"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
