@@ -1933,7 +1933,185 @@ class VirtuosoTheory {
                 const scrollLeft = middleC.offsetLeft - (scroller.clientWidth / 2) + (middleC.offsetWidth / 2);
                 scroller.scrollLeft = scrollLeft;
             }
+
+            // Set underglow width to match piano
+            const underglow = document.getElementById('pianoUnderglow');
+            if (underglow && this.pianoWidth) {
+                underglow.style.width = (this.pianoWidth + 40) + 'px';
+            }
         }, 100);
+    }
+
+    createKeyParticles(key, isBlack) {
+        const container = document.getElementById('keyParticles');
+        if (!container) return;
+
+        const rect = key.getBoundingClientRect();
+        const pianoRect = this.piano.getBoundingClientRect();
+
+        // Position relative to piano
+        const x = rect.left - pianoRect.left + rect.width / 2;
+        const y = rect.top - pianoRect.top + rect.height * 0.3;
+
+        const color = isBlack ? '#ff00ff' : '#00ffff';
+        const particleCount = 8;
+
+        // Create particles
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'key-particle';
+
+            const angle = (Math.PI * 2 / particleCount) * i - Math.PI / 2;
+            const distance = 20 + Math.random() * 30;
+            const size = 3 + Math.random() * 4;
+
+            particle.style.cssText = `
+                left: ${x}px;
+                top: ${y}px;
+                width: ${size}px;
+                height: ${size}px;
+                background: ${color};
+                box-shadow: 0 0 ${size * 2}px ${color};
+            `;
+
+            container.appendChild(particle);
+
+            // Animate outward
+            const endX = x + Math.cos(angle) * distance;
+            const endY = y + Math.sin(angle) * distance;
+
+            requestAnimationFrame(() => {
+                particle.style.transition = 'all 0.4s ease-out';
+                particle.style.left = endX + 'px';
+                particle.style.top = endY + 'px';
+            });
+
+            // Remove after animation
+            setTimeout(() => particle.remove(), 500);
+        }
+
+        // Create ripple
+        const ripple = document.createElement('div');
+        ripple.className = 'key-ripple';
+        ripple.style.cssText = `
+            left: ${x - 20}px;
+            top: ${y - 20}px;
+            width: 40px;
+            height: 40px;
+            border-color: ${color};
+        `;
+        container.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 500);
+    }
+
+    // Create feedback particle burst effect
+    createFeedbackParticles(isCorrect, isMilestone = false) {
+        const container = document.getElementById('feedbackParticles');
+        if (!container) return;
+
+        // Clear previous particles
+        container.innerHTML = '';
+
+        const centerX = container.offsetWidth / 2;
+        const startY = 60; // Near top where feedback text appears
+
+        // Determine colors and particle count based on feedback type
+        let colors, particleCount;
+        if (isMilestone) {
+            colors = ['#ffd700', '#ffaa00', '#ff8800', '#ffffff'];
+            particleCount = 20;
+        } else if (isCorrect) {
+            colors = ['#00ff88', '#00ffaa', '#00ffcc', '#88ffbb'];
+            particleCount = 12;
+        } else {
+            colors = ['#ff0066', '#ff3388', '#ff6699'];
+            particleCount = 8;
+        }
+
+        // Create burst particles
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'feedback-particle';
+
+            const angle = (Math.PI * 2 / particleCount) * i + Math.random() * 0.3;
+            const distance = (isMilestone ? 80 : 50) + Math.random() * 60;
+            const size = (isMilestone ? 6 : 4) + Math.random() * 4;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const delay = Math.random() * 100;
+
+            particle.style.cssText = `
+                left: ${centerX}px;
+                top: ${startY}px;
+                width: ${size}px;
+                height: ${size}px;
+                background: ${color};
+                box-shadow: 0 0 ${size * 2}px ${color}, 0 0 ${size * 4}px ${color}50;
+                opacity: 1;
+            `;
+
+            container.appendChild(particle);
+
+            // Animate outward with physics
+            const endX = centerX + Math.cos(angle) * distance;
+            const endY = startY + Math.sin(angle) * distance + 30; // Slight gravity effect
+
+            setTimeout(() => {
+                particle.style.transition = `all ${0.5 + Math.random() * 0.3}s cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+                particle.style.left = endX + 'px';
+                particle.style.top = endY + 'px';
+                particle.style.opacity = '0';
+                particle.style.transform = 'scale(0.3)';
+            }, delay);
+
+            // Remove after animation
+            setTimeout(() => particle.remove(), 900);
+        }
+
+        // For milestones, add extra sparkle particles
+        if (isMilestone) {
+            for (let i = 0; i < 10; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'feedback-particle';
+
+                const delay = 100 + Math.random() * 200;
+                const x = centerX + (Math.random() - 0.5) * 150;
+                const y = startY + (Math.random() - 0.5) * 80;
+
+                sparkle.style.cssText = `
+                    left: ${x}px;
+                    top: ${y}px;
+                    width: 3px;
+                    height: 3px;
+                    background: #ffffff;
+                    box-shadow: 0 0 8px #ffd700, 0 0 16px #ffaa00;
+                    opacity: 0;
+                `;
+
+                container.appendChild(sparkle);
+
+                setTimeout(() => {
+                    sparkle.style.transition = 'all 0.3s ease-out';
+                    sparkle.style.opacity = '1';
+                    sparkle.style.transform = 'scale(1.5)';
+
+                    setTimeout(() => {
+                        sparkle.style.opacity = '0';
+                        sparkle.style.transform = 'scale(0)';
+                    }, 200);
+                }, delay);
+
+                setTimeout(() => sparkle.remove(), 700);
+            }
+        }
+    }
+
+    // Create screen flash effect for milestones
+    createScreenFlash(color = 'rgba(255, 215, 0, 0.3)') {
+        const flash = document.createElement('div');
+        flash.className = 'screen-flash';
+        flash.style.background = color;
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 300);
     }
 
     noteToMidi(note) {
@@ -1968,15 +2146,17 @@ class VirtuosoTheory {
         const key = this.piano.querySelector(`[data-note="${noteStr}"]`);
         if (key) {
             key.classList.add('active');
+            // Create particle effect
+            this.createKeyParticles(key, key.classList.contains('black'));
         }
-        
+
         const velocityNorm = velocity / 127;
-        
+
         // Vibration feedback on mobile
         if (this.isMobile && navigator.vibrate) {
             navigator.vibrate(10);
         }
-        
+
         this.sampler.triggerAttack(Tone.Frequency(midiNote, "midi"), undefined, velocityNorm);
         
         if (this.gameActive && !this.isPaused && this.currentQuestion && !this.questionAnswered) {
@@ -2074,14 +2254,27 @@ class VirtuosoTheory {
     }
 
     drawStaffLine(svg, x1, y1, x2, y2) {
+        // Create glow layer first (behind main line)
+        const glowLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        glowLine.setAttribute('x1', x1);
+        glowLine.setAttribute('y1', y1);
+        glowLine.setAttribute('x2', x2);
+        glowLine.setAttribute('y2', y2);
+        glowLine.setAttribute('stroke', 'rgba(0, 255, 255, 0.4)');
+        glowLine.setAttribute('stroke-width', '12');
+        glowLine.style.filter = 'blur(6px)';
+        glowLine.classList.add('staff-line-glow');
+        svg.appendChild(glowLine);
+
+        // Main line
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', x1);
         line.setAttribute('y1', y1);
         line.setAttribute('x2', x2);
         line.setAttribute('y2', y2);
-        line.setAttribute('stroke', 'rgba(255, 255, 255, 0.8)');
-        line.setAttribute('stroke-width', '4');
-        line.style.filter = 'drop-shadow(0 0 5px rgba(0, 255, 255, 0.5))';
+        line.setAttribute('stroke', 'rgba(255, 255, 255, 0.85)');
+        line.setAttribute('stroke-width', '3');
+        line.style.filter = 'drop-shadow(0 0 4px rgba(0, 255, 255, 0.6))';
         svg.appendChild(line);
     }
 
@@ -2958,44 +3151,88 @@ class VirtuosoTheory {
                         left: 0;
                         width: 100%;
                         height: 100%;
-                        background: rgba(0, 0, 0, 0.85);
+                        background: radial-gradient(ellipse at center, rgba(0, 20, 40, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
                         display: flex;
                         justify-content: center;
                         align-items: center;
                         z-index: 10000;
                         font-family: 'Orbitron', Arial, sans-serif;
+                        overflow: hidden;
+                    }
+                    .countdown-center {
+                        position: relative;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
                     }
                     .countdown-number {
-                        font-size: clamp(120px, 25vw, 200px);
-                        font-weight: bold;
+                        font-size: clamp(140px, 30vw, 220px);
+                        font-weight: 900;
                         color: #00ffff;
                         text-shadow:
-                            0 0 20px rgba(0, 255, 255, 0.8),
-                            0 0 40px rgba(0, 255, 255, 0.6),
-                            0 0 60px rgba(0, 255, 255, 0.4),
-                            0 0 80px rgba(0, 255, 255, 0.2);
-                        animation: countdownPulse 0.5s ease-out;
+                            0 0 20px rgba(0, 255, 255, 1),
+                            0 0 40px rgba(0, 255, 255, 0.8),
+                            0 0 80px rgba(0, 255, 255, 0.6),
+                            0 0 120px rgba(0, 255, 255, 0.4),
+                            0 0 160px rgba(0, 255, 255, 0.2);
+                        animation: countdownPulse 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
                         user-select: none;
+                        z-index: 10;
+                        position: relative;
                     }
                     .countdown-go {
-                        font-size: clamp(100px, 20vw, 160px);
-                        font-weight: bold;
-                        background: linear-gradient(135deg, #00ff88 0%, #00ffff 50%, #ff00ff 100%);
+                        font-size: clamp(100px, 22vw, 180px);
+                        font-weight: 900;
+                        background: linear-gradient(135deg, #00ff88 0%, #00ffff 30%, #ff00ff 70%, #ffaa00 100%);
                         -webkit-background-clip: text;
                         -webkit-text-fill-color: transparent;
                         background-clip: text;
-                        animation: countdownGo 0.6s ease-out;
+                        animation: countdownGo 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
                         text-shadow: none;
-                        filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.8));
+                        filter: drop-shadow(0 0 40px rgba(0, 255, 136, 1)) drop-shadow(0 0 80px rgba(255, 0, 255, 0.5));
+                    }
+                    .countdown-ring {
+                        position: absolute;
+                        border: 3px solid #00ffff;
+                        border-radius: 50%;
+                        opacity: 0;
+                        pointer-events: none;
+                    }
+                    .countdown-ring.animate {
+                        animation: ringExpand 0.7s ease-out forwards;
+                    }
+                    .countdown-ring.go-ring {
+                        border-color: #00ff88;
+                        border-width: 4px;
+                        animation: ringExpandGo 0.8s ease-out forwards;
+                    }
+                    .countdown-particle {
+                        position: absolute;
+                        width: 6px;
+                        height: 6px;
+                        border-radius: 50%;
+                        background: #00ffff;
+                        opacity: 0;
+                        pointer-events: none;
+                    }
+                    .countdown-particle.go-particle {
+                        background: #00ff88;
+                        width: 8px;
+                        height: 8px;
                     }
                     @keyframes countdownPulse {
                         0% {
-                            transform: scale(2);
+                            transform: scale(2.5);
                             opacity: 0;
+                            filter: blur(10px);
                         }
-                        50% {
-                            transform: scale(0.9);
+                        40% {
+                            transform: scale(0.85);
                             opacity: 1;
+                            filter: blur(0);
+                        }
+                        60% {
+                            transform: scale(1.1);
                         }
                         100% {
                             transform: scale(1);
@@ -3004,75 +3241,194 @@ class VirtuosoTheory {
                     }
                     @keyframes countdownGo {
                         0% {
-                            transform: scale(3) rotate(-10deg);
+                            transform: scale(3.5) rotate(-15deg);
                             opacity: 0;
+                            filter: blur(15px);
+                        }
+                        30% {
+                            opacity: 1;
+                            filter: blur(0);
                         }
                         50% {
-                            transform: scale(0.8) rotate(5deg);
-                            opacity: 1;
+                            transform: scale(0.75) rotate(8deg);
                         }
-                        75% {
-                            transform: scale(1.1) rotate(-2deg);
+                        70% {
+                            transform: scale(1.15) rotate(-3deg);
+                        }
+                        85% {
+                            transform: scale(0.95) rotate(1deg);
                         }
                         100% {
                             transform: scale(1) rotate(0deg);
                             opacity: 1;
                         }
                     }
+                    @keyframes ringExpand {
+                        0% {
+                            width: 50px;
+                            height: 50px;
+                            opacity: 0.8;
+                            box-shadow: 0 0 20px #00ffff, inset 0 0 20px #00ffff;
+                        }
+                        100% {
+                            width: 400px;
+                            height: 400px;
+                            opacity: 0;
+                            box-shadow: 0 0 40px transparent, inset 0 0 40px transparent;
+                        }
+                    }
+                    @keyframes ringExpandGo {
+                        0% {
+                            width: 60px;
+                            height: 60px;
+                            opacity: 1;
+                            box-shadow: 0 0 30px #00ff88, 0 0 60px #ff00ff, inset 0 0 30px #00ffff;
+                        }
+                        100% {
+                            width: 600px;
+                            height: 600px;
+                            opacity: 0;
+                            box-shadow: 0 0 80px transparent, 0 0 120px transparent, inset 0 0 80px transparent;
+                        }
+                    }
+                    .countdown-bg-pulse {
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        background: radial-gradient(circle at center, rgba(0, 255, 255, 0.1) 0%, transparent 50%);
+                        animation: bgPulse 0.6s ease-out;
+                    }
+                    .countdown-bg-pulse.go-pulse {
+                        background: radial-gradient(circle at center, rgba(0, 255, 136, 0.2) 0%, rgba(255, 0, 255, 0.1) 30%, transparent 60%);
+                        animation: bgPulseGo 0.8s ease-out;
+                    }
+                    @keyframes bgPulse {
+                        0% { transform: scale(0); opacity: 1; }
+                        100% { transform: scale(3); opacity: 0; }
+                    }
+                    @keyframes bgPulseGo {
+                        0% { transform: scale(0); opacity: 1; }
+                        100% { transform: scale(4); opacity: 0; }
+                    }
                 </style>
-                <div class="countdown-number">3</div>
+                <div class="countdown-center">
+                    <div class="countdown-number">3</div>
+                </div>
             `;
             document.body.appendChild(overlay);
 
+            const centerEl = overlay.querySelector('.countdown-center');
             const countdownEl = overlay.querySelector('.countdown-number');
             const steps = ['3', '2', '1', 'GO!'];
             let currentStep = 0;
 
-            // Play initial beep for "3"
+            // Create ring and particle effects
+            const createEffects = (isGo = false) => {
+                // Background pulse
+                const bgPulse = document.createElement('div');
+                bgPulse.className = 'countdown-bg-pulse' + (isGo ? ' go-pulse' : '');
+                overlay.insertBefore(bgPulse, centerEl);
+                setTimeout(() => bgPulse.remove(), 800);
+
+                // Expanding rings
+                const ringCount = isGo ? 3 : 2;
+                for (let i = 0; i < ringCount; i++) {
+                    setTimeout(() => {
+                        const ring = document.createElement('div');
+                        ring.className = 'countdown-ring' + (isGo ? ' go-ring' : '');
+                        ring.style.left = '50%';
+                        ring.style.top = '50%';
+                        ring.style.transform = 'translate(-50%, -50%)';
+                        centerEl.appendChild(ring);
+                        requestAnimationFrame(() => ring.classList.add('animate'));
+                        setTimeout(() => ring.remove(), 800);
+                    }, i * 100);
+                }
+
+                // Particles burst
+                const particleCount = isGo ? 16 : 10;
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'countdown-particle' + (isGo ? ' go-particle' : '');
+                    const angle = (Math.PI * 2 / particleCount) * i;
+                    const distance = (isGo ? 200 : 150) + Math.random() * 100;
+                    const delay = Math.random() * 50;
+
+                    particle.style.left = '50%';
+                    particle.style.top = '50%';
+                    particle.style.transform = 'translate(-50%, -50%)';
+                    particle.style.boxShadow = isGo
+                        ? '0 0 10px #00ff88, 0 0 20px #ff00ff'
+                        : '0 0 8px #00ffff';
+
+                    centerEl.appendChild(particle);
+
+                    setTimeout(() => {
+                        particle.style.transition = 'all 0.6s ease-out';
+                        particle.style.opacity = '1';
+                        const x = Math.cos(angle) * distance;
+                        const y = Math.sin(angle) * distance;
+                        particle.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+
+                        setTimeout(() => {
+                            particle.style.opacity = '0';
+                        }, 300);
+                    }, delay);
+
+                    setTimeout(() => particle.remove(), 700);
+                }
+            };
+
+            // Play initial beep for "3" and create effects
             this.playUISound('countdown');
+            createEffects();
 
             const nextStep = () => {
                 currentStep++;
                 if (currentStep < steps.length) {
                     const text = steps[currentStep];
                     countdownEl.textContent = text;
+                    const isGo = text === 'GO!';
 
                     // Play sound effect
-                    if (text === 'GO!') {
+                    if (isGo) {
                         this.playUISound('go');
                     } else {
                         this.playUISound('countdown');
                     }
 
+                    // Create visual effects
+                    createEffects(isGo);
+
                     // Reset animation
                     countdownEl.style.animation = 'none';
                     countdownEl.offsetHeight; // Trigger reflow
 
-                    if (text === 'GO!') {
+                    if (isGo) {
                         countdownEl.className = 'countdown-go';
-                        countdownEl.style.animation = 'countdownGo 0.6s ease-out';
+                        countdownEl.style.animation = 'countdownGo 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)';
                     } else {
-                        countdownEl.style.animation = 'countdownPulse 0.5s ease-out';
+                        countdownEl.style.animation = 'countdownPulse 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
                     }
 
                     if (currentStep < steps.length - 1) {
-                        setTimeout(nextStep, 700);
+                        setTimeout(nextStep, 750);
                     } else {
                         // After "GO!" - fade out and resolve
                         setTimeout(() => {
-                            overlay.style.transition = 'opacity 0.3s ease';
+                            overlay.style.transition = 'opacity 0.4s ease';
                             overlay.style.opacity = '0';
                             setTimeout(() => {
                                 overlay.remove();
                                 resolve();
-                            }, 300);
-                        }, 500);
+                            }, 400);
+                        }, 600);
                     }
                 }
             };
 
             // Start countdown after brief moment
-            setTimeout(nextStep, 700);
+            setTimeout(nextStep, 750);
         });
     }
 
@@ -3286,6 +3642,15 @@ class VirtuosoTheory {
         feedback.className = className;
         feedback.style.opacity = '1';
 
+        // Create particle burst effect
+        const isMilestone = type === 'milestone';
+        this.createFeedbackParticles(isCorrect, isMilestone);
+
+        // Screen flash for milestones
+        if (isMilestone) {
+            this.createScreenFlash();
+        }
+
         // Milestone feedback stays slightly longer
         const duration = type === 'milestone' ? 1200 : 800;
         setTimeout(() => {
@@ -3480,7 +3845,7 @@ class VirtuosoTheory {
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: linear-gradient(180deg, rgba(5, 5, 20, 0.98) 0%, rgba(20, 5, 30, 0.98) 100%);
+                    background: radial-gradient(ellipse at center, rgba(0, 20, 40, 0.95) 0%, rgba(5, 5, 20, 0.98) 50%, rgba(0, 0, 0, 0.99) 100%);
                     display: flex;
                     justify-content: center;
                     align-items: center;
@@ -3488,126 +3853,209 @@ class VirtuosoTheory {
                     font-family: 'Orbitron', Arial, sans-serif;
                     opacity: 0;
                     animation: fadeInResults 0.5s ease forwards;
+                    overflow: hidden;
                 }
                 @keyframes fadeInResults {
                     to { opacity: 1; }
                 }
+                .results-particles {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                    overflow: hidden;
+                }
+                .results-particle {
+                    position: absolute;
+                    border-radius: 50%;
+                    opacity: 0;
+                    animation: floatParticle 4s ease-in-out infinite;
+                }
+                @keyframes floatParticle {
+                    0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+                    50% { transform: translateY(-30px) scale(1.2); opacity: 0.3; }
+                }
                 .results-container {
+                    position: relative;
                     text-align: center;
                     max-width: 500px;
                     width: 90%;
-                    padding: 30px;
+                    padding: 40px 30px;
+                    background: linear-gradient(135deg, rgba(0, 50, 80, 0.4) 0%, rgba(40, 0, 60, 0.4) 100%);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(0, 255, 255, 0.2);
+                    border-radius: 24px;
+                    box-shadow:
+                        0 0 60px rgba(0, 255, 255, 0.15),
+                        0 0 120px rgba(255, 0, 255, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 0 0 40px rgba(0, 255, 255, 0.05);
+                    opacity: 0;
+                    transform: scale(0.9) translateY(20px);
+                    animation: containerIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards;
+                }
+                @keyframes containerIn {
+                    to { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                .results-container::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 1px;
+                    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
                 }
                 .results-header {
                     font-size: clamp(14px, 3vw, 18px);
-                    color: rgba(255, 255, 255, 0.5);
+                    color: rgba(255, 255, 255, 0.6);
                     text-transform: uppercase;
                     letter-spacing: 4px;
                     margin-bottom: 10px;
                     opacity: 0;
-                    animation: slideUp 0.5s ease 0.2s forwards;
+                    animation: slideUp 0.5s ease 0.3s forwards;
                 }
                 .results-title {
                     font-size: clamp(28px, 6vw, 42px);
-                    font-weight: bold;
+                    font-weight: 900;
                     background: ${ratingColor};
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
                     filter: drop-shadow(0 0 20px ${ratingGlow});
-                    margin-bottom: 30px;
+                    margin-bottom: 25px;
                     opacity: 0;
-                    animation: scaleIn 0.6s ease 0.4s forwards;
+                    animation: ratingIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards;
                 }
                 @keyframes slideUp {
                     from { transform: translateY(20px); opacity: 0; }
                     to { transform: translateY(0); opacity: 1; }
                 }
-                @keyframes scaleIn {
-                    from { transform: scale(0.5); opacity: 0; }
-                    to { transform: scale(1); opacity: 1; }
+                @keyframes ratingIn {
+                    0% { transform: scale(2) rotate(-5deg); opacity: 0; filter: blur(10px); }
+                    50% { transform: scale(0.9) rotate(2deg); opacity: 1; filter: blur(0); }
+                    100% { transform: scale(1) rotate(0); opacity: 1; }
                 }
                 .results-score {
                     font-size: clamp(60px, 15vw, 100px);
-                    font-weight: bold;
+                    font-weight: 900;
                     color: #00ffff;
                     text-shadow:
                         0 0 20px rgba(0, 255, 255, 0.8),
-                        0 0 40px rgba(0, 255, 255, 0.4);
-                    margin-bottom: 30px;
+                        0 0 40px rgba(0, 255, 255, 0.5),
+                        0 0 80px rgba(0, 255, 255, 0.3);
+                    margin-bottom: 25px;
                     opacity: 0;
-                    animation: countUp 0.8s ease 0.6s forwards;
+                    animation: scoreIn 0.8s ease 0.7s forwards;
                 }
-                @keyframes countUp {
-                    from { transform: scale(1.5); opacity: 0; }
-                    to { transform: scale(1); opacity: 1; }
+                @keyframes scoreIn {
+                    0% { transform: scale(1.5); opacity: 0; filter: blur(5px); }
+                    100% { transform: scale(1); opacity: 1; filter: blur(0); }
                 }
                 .results-stats {
                     display: grid;
                     grid-template-columns: repeat(2, 1fr);
-                    gap: 15px;
-                    margin-bottom: 30px;
+                    gap: 12px;
+                    margin-bottom: 25px;
                 }
                 .stat-box {
-                    background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.05) 100%);
-                    border: 1px solid rgba(0, 255, 255, 0.3);
+                    background: linear-gradient(135deg, rgba(0, 255, 255, 0.08) 0%, rgba(255, 0, 255, 0.04) 100%);
+                    border: 1px solid rgba(0, 255, 255, 0.15);
                     border-radius: 12px;
-                    padding: 15px 10px;
+                    padding: 12px 8px;
                     opacity: 0;
-                    animation: slideUp 0.5s ease forwards;
+                    transform: translateY(10px);
+                    animation: statIn 0.4s ease forwards;
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    transition: all 0.3s ease;
                 }
-                .stat-box:nth-child(1) { animation-delay: 0.8s; }
-                .stat-box:nth-child(2) { animation-delay: 0.9s; }
-                .stat-box:nth-child(3) { animation-delay: 1.0s; }
-                .stat-box:nth-child(4) { animation-delay: 1.1s; }
+                .stat-box:hover {
+                    background: linear-gradient(135deg, rgba(0, 255, 255, 0.15) 0%, rgba(255, 0, 255, 0.08) 100%);
+                    border-color: rgba(0, 255, 255, 0.3);
+                    transform: scale(1.02);
+                }
+                .stat-box:nth-child(1) { animation-delay: 0.9s; }
+                .stat-box:nth-child(2) { animation-delay: 1.0s; }
+                .stat-box:nth-child(3) { animation-delay: 1.1s; }
+                .stat-box:nth-child(4) { animation-delay: 1.2s; }
+                @keyframes statIn {
+                    to { opacity: 1; transform: translateY(0); }
+                }
                 .stat-value {
-                    font-size: clamp(24px, 5vw, 32px);
+                    font-size: clamp(22px, 5vw, 30px);
                     font-weight: bold;
                     color: #fff;
-                    margin-bottom: 5px;
+                    margin-bottom: 4px;
                 }
-                .stat-value.correct { color: #00ff88; }
-                .stat-value.incorrect { color: #ff4466; }
-                .stat-value.streak { color: #ffcc00; }
-                .stat-value.accuracy { color: #00ffff; }
+                .stat-value.correct { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
+                .stat-value.incorrect { color: #ff4466; text-shadow: 0 0 10px rgba(255, 68, 102, 0.5); }
+                .stat-value.streak { color: #ffcc00; text-shadow: 0 0 10px rgba(255, 204, 0, 0.5); }
+                .stat-value.accuracy { color: #00ffff; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
                 .stat-label {
-                    font-size: clamp(10px, 2.5vw, 12px);
-                    color: rgba(255, 255, 255, 0.6);
+                    font-size: clamp(9px, 2.5vw, 11px);
+                    color: rgba(255, 255, 255, 0.5);
                     text-transform: uppercase;
                     letter-spacing: 1px;
                 }
                 .results-level {
-                    font-size: clamp(12px, 2.5vw, 14px);
+                    font-size: clamp(11px, 2.5vw, 13px);
                     color: rgba(255, 255, 255, 0.4);
-                    margin-bottom: 25px;
+                    margin-bottom: 20px;
                     opacity: 0;
-                    animation: slideUp 0.5s ease 1.2s forwards;
+                    animation: slideUp 0.5s ease 1.3s forwards;
+                }
+                .results-buttons {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                    flex-wrap: wrap;
                 }
                 .results-button {
-                    padding: 15px 40px;
-                    font-size: clamp(14px, 3vw, 18px);
+                    padding: 14px 30px;
+                    font-size: clamp(12px, 3vw, 16px);
                     font-family: 'Orbitron', Arial, sans-serif;
                     font-weight: bold;
-                    color: #000;
-                    background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%);
                     border: none;
                     border-radius: 10px;
                     cursor: pointer;
                     text-transform: uppercase;
                     letter-spacing: 2px;
-                    box-shadow:
-                        0 0 30px rgba(0, 255, 255, 0.5),
-                        0 5px 20px rgba(0, 0, 0, 0.3);
                     transition: all 0.3s ease;
                     opacity: 0;
-                    animation: slideUp 0.5s ease 1.4s forwards;
                     -webkit-tap-highlight-color: transparent;
                 }
-                .results-button:hover {
+                .results-button.primary {
+                    color: #000;
+                    background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%);
+                    box-shadow:
+                        0 0 30px rgba(0, 255, 255, 0.4),
+                        0 5px 20px rgba(0, 0, 0, 0.3);
+                    animation: buttonIn 0.5s ease 1.5s forwards;
+                }
+                .results-button.secondary {
+                    color: #00ff88;
+                    background: transparent;
+                    border: 2px solid rgba(0, 255, 136, 0.5);
+                    box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+                    animation: buttonIn 0.5s ease 1.6s forwards;
+                }
+                @keyframes buttonIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .results-button.primary:hover {
                     transform: scale(1.05);
                     box-shadow:
-                        0 0 50px rgba(0, 255, 255, 0.7),
+                        0 0 50px rgba(0, 255, 255, 0.6),
                         0 5px 30px rgba(0, 0, 0, 0.4);
+                }
+                .results-button.secondary:hover {
+                    transform: scale(1.05);
+                    background: rgba(0, 255, 136, 0.1);
+                    border-color: rgba(0, 255, 136, 0.8);
+                    box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
                 }
                 .results-button:active {
                     transform: scale(0.98);
@@ -3615,12 +4063,13 @@ class VirtuosoTheory {
                 .decorative-line {
                     width: 60%;
                     height: 2px;
-                    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
+                    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.4), transparent);
                     margin: 20px auto;
                     opacity: 0;
-                    animation: slideUp 0.5s ease 0.7s forwards;
+                    animation: slideUp 0.5s ease 0.8s forwards;
                 }
             </style>
+            <div class="results-particles" id="resultsParticles"></div>
             <div class="results-container">
                 <div class="results-header">Game Complete</div>
                 <div class="results-title">${rating}</div>
@@ -3645,11 +4094,46 @@ class VirtuosoTheory {
                     </div>
                 </div>
                 <div class="results-level">${categoryName} • ${levelName}</div>
-                <button class="results-button" id="resultsCloseBtn">Continue</button>
+                <div class="results-buttons">
+                    <button class="results-button secondary" id="playAgainBtn">Play Again</button>
+                    <button class="results-button primary" id="resultsCloseBtn">Continue</button>
+                </div>
             </div>
         `;
 
         document.body.appendChild(overlay);
+
+        // Create floating particles
+        const particlesContainer = document.getElementById('resultsParticles');
+        const colors = ['#00ffff', '#ff00ff', '#00ff88', '#ffaa00'];
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'results-particle';
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const size = 4 + Math.random() * 6;
+            particle.style.cssText = `
+                left: ${Math.random() * 100}%;
+                top: ${Math.random() * 100}%;
+                width: ${size}px;
+                height: ${size}px;
+                background: ${color};
+                box-shadow: 0 0 ${size * 2}px ${color};
+                animation-delay: ${Math.random() * 4}s;
+                animation-duration: ${3 + Math.random() * 2}s;
+            `;
+            particlesContainer.appendChild(particle);
+        }
+
+        // Play Again button handler
+        document.getElementById('playAgainBtn').addEventListener('click', () => {
+            overlay.style.transition = 'opacity 0.3s ease';
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.remove();
+                // Restart the same level
+                this.startLevel(levelName, categoryName);
+            }, 300);
+        });
 
         // Close button handler
         document.getElementById('resultsCloseBtn').addEventListener('click', () => {
