@@ -4134,14 +4134,14 @@ class VirtuosoTheory {
             particlesContainer.appendChild(particle);
         }
 
-        // Play Again button handler
+        // Play Again button handler - go back to input/duration selection
         document.getElementById('playAgainBtn').addEventListener('click', () => {
             overlay.style.transition = 'opacity 0.3s ease';
             overlay.style.opacity = '0';
             setTimeout(() => {
                 overlay.remove();
-                // Restart the same level (currentLevel is already set)
-                this.startGame();
+                // Show the setup screen (input method + duration selection)
+                this.showDurationSelector(this.currentLevel);
             }, 300);
         });
 
