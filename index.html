@@ -58,7 +58,7 @@
 
         body {
             font-family: 'Orbitron', 'Arial Black', Arial, sans-serif;
-            background: linear-gradient(180deg, #000011 0%, #000022 100%);
+            background: #000011;
             height: 100vh;
             height: -webkit-fill-available;
             height: 100dvh;
@@ -121,18 +121,8 @@
             overflow: hidden;
         }
 
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            will-change: transform, opacity;
-        }
-
-        .particle-glow {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(4px);
-            mix-blend-mode: screen;
+        .particle-wrapper {
+            will-change: transform, opacity, left, top;
         }
 
         /* Main Container */
