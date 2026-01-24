@@ -1978,8 +1978,8 @@ class VirtuosoTheory {
         const fixedGapBetweenStaves = 50;
         const totalStaffHeight = staffHeight * 2 + fixedGapBetweenStaves;
 
-        // Shift staff up to allow more room at bottom for ledger lines
-        const verticalCenter = height / 2 - 20;
+        // Shift staff up significantly to allow room at bottom for low ledger lines (C2)
+        const verticalCenter = height / 2 - 60;
         const staffGroupTop = verticalCenter - (totalStaffHeight / 2) + 15;
 
         const trebleY = staffGroupTop + (staffHeight / 2);
