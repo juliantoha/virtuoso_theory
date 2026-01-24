@@ -3662,6 +3662,7 @@ class VirtuosoTheory {
         const indicator = document.getElementById('streakIndicator');
         const multiplierEl = document.getElementById('streakMultiplier');
         const barEl = document.getElementById('streakBar');
+        const iconEl = document.getElementById('streakIcon');
 
         if (streak >= 2) {
             // Show indicator
@@ -3674,14 +3675,23 @@ class VirtuosoTheory {
             const barPercent = Math.min((streak / 15) * 100, 100);
             barEl.style.width = `${barPercent}%`;
 
-            // Update color tier based on streak
+            // Update color tier and icon based on streak
             indicator.classList.remove('hot', 'fire', 'legendary');
             if (streak >= 10) {
                 indicator.classList.add('legendary');
+                iconEl.textContent = '👑';
+                iconEl.style.color = '#ffd700';
             } else if (streak >= 5) {
                 indicator.classList.add('fire');
+                iconEl.textContent = '🔥';
+                iconEl.style.color = '#ff0066';
             } else if (streak >= 3) {
                 indicator.classList.add('hot');
+                iconEl.textContent = '🔥';
+                iconEl.style.color = '#ff8800';
+            } else {
+                iconEl.textContent = '⚡';
+                iconEl.style.color = '#00ffff';
             }
         } else {
             indicator.classList.remove('active');
